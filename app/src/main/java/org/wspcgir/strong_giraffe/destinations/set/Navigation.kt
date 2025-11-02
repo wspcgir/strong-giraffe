@@ -64,7 +64,12 @@ fun NavGraphBuilder.setGraph(
                 val view = viewModel<EditSetPageViewModel>(parent)
                 LaunchedEffect(navArgs.id) {
                     Log.d("editSetGraph", "Initializing EditSet page view model")
-                    view.init(repo, navController, navArgs.id, navArgs.locked)
+                    view.init(repo, navController, navArgs.id, navArgs.locked) {
+                        when (val data = listView.data.value) {
+                            is SetListPageViewModel.Data.Loaded -> { data.refresh() }
+                            else -> { }
+                        }
+                    }
                 }
                 EditSetPage(view)
             }

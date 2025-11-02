@@ -156,6 +156,12 @@ class SetListPageViewModel : ViewModel() {
                     navController.navigate(EditSet(id = id.id, false))
                 }
             }
+
+            fun refresh() {
+                scope.launch {
+                    _setSummaries.value = repo.getSetSummaries()
+                }
+            }
         }
     }
 }

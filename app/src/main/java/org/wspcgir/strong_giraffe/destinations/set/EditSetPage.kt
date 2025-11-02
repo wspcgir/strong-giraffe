@@ -94,7 +94,13 @@ class EditSetPageViewModel() : ViewModel() {
     val data: State<Data>
         get() = dataMut
 
-    fun init(repo: AppRepository, dest: NavController, setId: SetId, locked: Boolean) {
+    fun init(
+        repo: AppRepository,
+        dest: NavController,
+        setId: SetId,
+        locked: Boolean,
+        refreshSetList: () -> Unit
+    ) {
         when (data.value) {
             is Data.Empty -> {
                 viewModelScope.launch {
@@ -112,7 +118,8 @@ class EditSetPageViewModel() : ViewModel() {
                         scope = viewModelScope,
                         previousSetsMut = mutableStateOf(previousSets),
                         inProgressMut = mutableStateOf(set),
-                        lockedMut = mutableStateOf(locked)
+                        lockedMut = mutableStateOf(locked),
+                        refreshSetList = refreshSetList
                     )
                 }
             }
@@ -128,6 +135,7 @@ class EditSetPageViewModel() : ViewModel() {
             private val previousSetsMut: MutableState<List<WorkoutSet>>,
             private val inProgressMut: MutableState<SetContent>,
             private val lockedMut: MutableState<Boolean>,
+            private val refreshSetList: () -> Unit,
         ) : Data {
             val locked: State<Boolean>
                 get() = lockedMut
@@ -154,6 +162,7 @@ class EditSetPageViewModel() : ViewModel() {
                         comment = inProgress.value.comment,
                         time = inProgressMut.value.time
                     )
+                    refreshSetList()
                 }
             }
 
