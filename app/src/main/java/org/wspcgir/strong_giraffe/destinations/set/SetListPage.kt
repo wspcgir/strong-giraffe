@@ -40,12 +40,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import org.wspcgir.strong_giraffe.model.Group
 import org.wspcgir.strong_giraffe.model.Intensity
 import org.wspcgir.strong_giraffe.model.Reps
 import org.wspcgir.strong_giraffe.model.Weight
 import org.wspcgir.strong_giraffe.model.ids.ExerciseId
+import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
 import org.wspcgir.strong_giraffe.model.ids.MuscleId
 import org.wspcgir.strong_giraffe.model.ids.SetId
 import org.wspcgir.strong_giraffe.model.set.SetSummary
@@ -207,7 +207,7 @@ private fun Page(
                 .withSecond(0)
                 .withNano(0)
         }.map { group ->
-            group.innerGroup { it.exerciseId }
+            group.innerGroup { it.exerciseId.value + (it.variationId?.value ?: "") }
         }
 
     Scaffold(
@@ -271,10 +271,12 @@ private fun DaySetsCard(
             )
 
             listOf(day.first).plus(day.rest).forEach { sets ->
-                Text(
-                    sets.first.exerciseName,
-                    fontSize = SMALL_NAME_FONT_SIZE
-                )
+                Text(sets.first.exerciseName, fontSize = SMALL_NAME_FONT_SIZE)
+                if (sets.first.variationName != null) {
+                    Text(sets.first.variationName, fontSize = SMALL_NAME_FONT_SIZE)
+                } else {
+                    sets.first.exerciseName
+                }
 
                 CompositionLocalProvider(
                     LocalLayoutDirection.provides(LayoutDirection.Rtl)
@@ -316,12 +318,16 @@ private fun Preview() {
                 time = OffsetDateTime.now(),
                 intensity = Intensity.Easy,
                 exerciseName = "Bicep Curls",
-                exerciseId = ExerciseId("a")
+                exerciseId = ExerciseId("a"),
+                variationName = null,
+                variationId = null,
             )
         val extension = curl.copy(
             exerciseName = "Tricep Extension",
             exerciseId = ExerciseId("b"),
-            time = curl.time.plusSeconds(120)
+            time = curl.time.plusSeconds(120),
+            variationName = "Barbell",
+            variationId = ExerciseVariationId("variationA")
         )
         Page(
             sets = remember {
@@ -330,7 +336,7 @@ private fun Preview() {
                         curl.copy(
                             time = curl.time.minusSeconds(20),
                             reps = Reps(5),
-                            intensity = Intensity.Normal
+                            intensity = Intensity.Normal,
                         ),
                         curl.copy(
                             time = curl.time.minusSeconds(60),

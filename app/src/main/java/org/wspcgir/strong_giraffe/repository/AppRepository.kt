@@ -137,7 +137,9 @@ class AppRepository(private val dao: AppDao) {
                     Instant.ofEpochSecond(e.time),
                     TimeZone.getDefault().toZoneId()
                 ),
-                intensity = Intensity.fromInt(e.intensity)!!
+                intensity = Intensity.fromInt(e.intensity)!!,
+                variationName = e.variationName,
+                variationId = e.variationId?.let { ExerciseVariationId(it) },
             )
         }
     }
