@@ -1,4 +1,4 @@
-package org.wspcgir.strong_giraffe.destinations.edit_set
+package org.wspcgir.strong_giraffe.destinations.set
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES

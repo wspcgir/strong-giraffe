@@ -46,7 +46,7 @@ import org.wspcgir.strong_giraffe.destinations.EditLocationPageViewModel
 import org.wspcgir.strong_giraffe.destinations.EditMuscle
 import org.wspcgir.strong_giraffe.destinations.EditMusclePage
 import org.wspcgir.strong_giraffe.destinations.EditMusclePageViewModel
-import org.wspcgir.strong_giraffe.destinations.edit_set.EditSet
+import org.wspcgir.strong_giraffe.destinations.set.EditSet
 import org.wspcgir.strong_giraffe.destinations.EquipmentList
 import org.wspcgir.strong_giraffe.destinations.EquipmentListPage
 import org.wspcgir.strong_giraffe.destinations.EquipmentListPageViewModel
@@ -60,11 +60,10 @@ import org.wspcgir.strong_giraffe.destinations.LocationListPageViewModel
 import org.wspcgir.strong_giraffe.destinations.MuscleList
 import org.wspcgir.strong_giraffe.destinations.MuscleListPage
 import org.wspcgir.strong_giraffe.destinations.MuscleListPageViewModel
-import org.wspcgir.strong_giraffe.destinations.RegisterSetListPage
-import org.wspcgir.strong_giraffe.destinations.SetList
-import org.wspcgir.strong_giraffe.destinations.edit_set.editSetGraph
+import org.wspcgir.strong_giraffe.destinations.set.setGraph
 import org.wspcgir.strong_giraffe.destinations.edit_variation.EditVariation
 import org.wspcgir.strong_giraffe.destinations.edit_variation.editVariationGraph
+import org.wspcgir.strong_giraffe.destinations.set.SetPage
 import org.wspcgir.strong_giraffe.model.Backup
 import org.wspcgir.strong_giraffe.model.Equipment
 import org.wspcgir.strong_giraffe.model.Exercise
@@ -231,7 +230,7 @@ fun MainComponent(
                 }, gotoExerciseList = {
                     navController.navigate(ExerciseList)
                 }, gotoSetList = {
-                    navController.navigate(SetList)
+                    navController.navigate(SetPage)
                 }, createBackup = createBackup,
                 restoreFromBackup = { pickFileLauncher.launch(arrayOf(JSON_MIME)) }
             )
@@ -435,10 +434,7 @@ fun MainComponent(
                 view = EditExercisePageViewModelImpl(navArgs.id, repo, navController)
             )
         }
-        composable<SetList> {
-            RegisterSetListPage(repo, navController)
-        }
-        editSetGraph(navController, repo, typeMap)
+        setGraph(navController, repo, typeMap)
         editVariationGraph(navController, repo, typeMap)
     }
 }
