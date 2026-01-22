@@ -326,7 +326,7 @@ private fun Preview() {
             exerciseName = "Tricep Extension",
             exerciseId = ExerciseId("b"),
             time = curl.time.plusSeconds(120),
-            variationName = "Barbell",
+            variationName = "WR Rope",
             variationId = ExerciseVariationId("variationA")
         )
         Page(

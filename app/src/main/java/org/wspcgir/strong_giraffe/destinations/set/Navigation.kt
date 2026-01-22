@@ -7,7 +7,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
@@ -22,7 +24,12 @@ import kotlinx.serialization.Serializable
 import org.wspcgir.strong_giraffe.destinations.EditExercise
 import org.wspcgir.strong_giraffe.destinations.edit_variation.EditVariation
 import org.wspcgir.strong_giraffe.model.Exercise
+import org.wspcgir.strong_giraffe.model.Location
+import org.wspcgir.strong_giraffe.model.ids.ExerciseId
+import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
+import org.wspcgir.strong_giraffe.model.ids.LocationId
 import org.wspcgir.strong_giraffe.model.variation.ExerciseVariation
+import org.wspcgir.strong_giraffe.model.variation.ExerciseVariationWithLocation
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.views.SelectionPage
 import kotlin.reflect.KType
@@ -107,7 +114,7 @@ fun NavGraphBuilder.setGraph(
             composable<SelectVariation> { entry ->
                 val parent = rememberParent(navController, entry)
                 val view = viewModel<EditSetPageViewModel>(parent)
-                var variations: List<ExerciseVariation> by remember { mutableStateOf(emptyList()) }
+                var variations: List<ExerciseVariationWithLocation> by remember { mutableStateOf(emptyList()) }
                 val data = view.data.value
                 LaunchedEffect(data) {
                     when (data) {
@@ -119,37 +126,85 @@ fun NavGraphBuilder.setGraph(
                         else -> {}
                     }
                 }
-                SelectionPage(
-                    items = variations,
-                    displayName = { it.name },
-                    onSelect = { variation ->
-                        when (data) {
-                            is EditSetPageViewModel.Data.Loaded -> {
-                                data.changeVariation(variation.id, variation.name)
-                                navController.popBackStack()
-                            }
-
-                            else -> {}
-                        }
-                    },
-                    onEdit = { variation -> navController.navigate(EditVariation(id = variation.id)) },
-                    onCreateNew = {
-                        view.viewModelScope.launch {
-                            when (data) {
-                                is EditSetPageViewModel.Data.Loaded -> {
-                                    val new =
-                                        repo.newExerciseVariation(data.inProgress.value.exercise)
-                                    navController.navigate(EditVariation(new.id))
-                                }
-
-                                else -> {}
-                            }
-                        }
-                    }
-                )
+                SelectVariationPage(variations, data, navController, view, repo)
             }
         }
     }
+}
+
+@Composable
+private fun SelectVariationPage(
+    variations: List<ExerciseVariationWithLocation>,
+    onSelect: (ExerciseVariationWithLocation) -> Unit,
+    onEdit: (ExerciseVariationWithLocation) -> Unit,
+    onCreateNew: () -> Unit,
+) {
+    SelectionPage(
+        items = variations,
+        displayName = {
+            val loc = it.locationName?.let { l -> " ($l)" } ?: ""
+            it.name + loc
+        },
+        onSelect = onSelect,
+        onEdit = onEdit,
+        onCreateNew = onCreateNew,
+    )
+}
+
+@Composable
+private fun SelectVariationPage(
+    variations : List<ExerciseVariationWithLocation>,
+    data: EditSetPageViewModel.Data,
+    navController: NavController,
+    view : EditSetPageViewModel,
+    repo : AppRepository
+) {
+    SelectVariationPage(
+        variations = variations,
+        onSelect = { variation ->
+            when (data) {
+                is EditSetPageViewModel.Data.Loaded -> {
+                    data.changeVariation(variation.id, variation.name)
+                    navController.popBackStack()
+                }
+
+                else -> {}
+            }
+        },
+        onEdit = { variation -> navController.navigate(EditVariation(id = variation.id)) },
+        onCreateNew = {
+            view.viewModelScope.launch {
+                when (data) {
+                    is EditSetPageViewModel.Data.Loaded -> {
+                        val new =
+                            repo.newExerciseVariation(data.inProgress.value.exercise)
+                        navController.navigate(EditVariation(new.id))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    )
+}
+
+@Preview
+@Composable
+private fun SelectVariationPagePreview() {
+    SelectVariationPage(
+        variations = listOf(
+            ExerciseVariationWithLocation(
+                id = ExerciseVariationId("A"),
+                name = "WR Bodymaster",
+                exercise = ExerciseId("ExerciseA"),
+                location = LocationId("LocationA"),
+                locationName = "24 Hour"
+            )
+        ),
+        onEdit = { },
+        onSelect = { },
+        onCreateNew = { }
+    )
 }
 
 @Composable
