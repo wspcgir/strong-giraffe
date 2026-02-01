@@ -46,7 +46,7 @@ import org.wspcgir.strong_giraffe.destinations.EditLocationPageViewModel
 import org.wspcgir.strong_giraffe.destinations.EditMuscle
 import org.wspcgir.strong_giraffe.destinations.EditMusclePage
 import org.wspcgir.strong_giraffe.destinations.EditMusclePageViewModel
-import org.wspcgir.strong_giraffe.destinations.set.EditSet
+import org.wspcgir.strong_giraffe.destinations.edit_set.EditSet
 import org.wspcgir.strong_giraffe.destinations.EquipmentList
 import org.wspcgir.strong_giraffe.destinations.EquipmentListPage
 import org.wspcgir.strong_giraffe.destinations.EquipmentListPageViewModel
@@ -60,14 +60,11 @@ import org.wspcgir.strong_giraffe.destinations.LocationListPageViewModel
 import org.wspcgir.strong_giraffe.destinations.MuscleList
 import org.wspcgir.strong_giraffe.destinations.MuscleListPage
 import org.wspcgir.strong_giraffe.destinations.MuscleListPageViewModel
-import org.wspcgir.strong_giraffe.destinations.set.setGraph
+import org.wspcgir.strong_giraffe.destinations.RegisterSetListPage
+import org.wspcgir.strong_giraffe.destinations.SetList
+import org.wspcgir.strong_giraffe.destinations.edit_set.editSetGraph
 import org.wspcgir.strong_giraffe.destinations.edit_variation.EditVariation
 import org.wspcgir.strong_giraffe.destinations.edit_variation.editVariationGraph
-import org.wspcgir.strong_giraffe.destinations.set.EditPage
-import org.wspcgir.strong_giraffe.destinations.set.ListPage
-import org.wspcgir.strong_giraffe.destinations.set.SelectExercise
-import org.wspcgir.strong_giraffe.destinations.set.SelectVariation
-import org.wspcgir.strong_giraffe.destinations.set.SetPage
 import org.wspcgir.strong_giraffe.model.Backup
 import org.wspcgir.strong_giraffe.model.Equipment
 import org.wspcgir.strong_giraffe.model.Exercise
@@ -83,13 +80,11 @@ import org.wspcgir.strong_giraffe.model.ids.SetId
 import org.wspcgir.strong_giraffe.repository.AppDatabase
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.repository.MIGRATION_1_2
-import org.wspcgir.strong_giraffe.repository.MIGRATION_2_3
 import org.wspcgir.strong_giraffe.ui.theme.StrongGiraffeTheme
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Collections.emptyList
-import kotlin.collections.plus
 import kotlin.reflect.typeOf
 
 const val JSON_MIME = "application/json"
@@ -99,7 +94,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val db =
             Room.databaseBuilder(applicationContext, AppDatabase::class.java, "data.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2)
                 .build()
         val dao = db.dao()
         val repo = AppRepository(dao)
@@ -236,7 +231,7 @@ fun MainComponent(
                 }, gotoExerciseList = {
                     navController.navigate(ExerciseList)
                 }, gotoSetList = {
-                    navController.navigate(SetPage)
+                    navController.navigate(SetList)
                 }, createBackup = createBackup,
                 restoreFromBackup = { pickFileLauncher.launch(arrayOf(JSON_MIME)) }
             )
@@ -440,7 +435,10 @@ fun MainComponent(
                 view = EditExercisePageViewModelImpl(navArgs.id, repo, navController)
             )
         }
-        setGraph(navController, repo, typeMap)
+        composable<SetList> {
+            RegisterSetListPage(repo, navController)
+        }
+        editSetGraph(navController, repo, typeMap)
         editVariationGraph(navController, repo, typeMap)
     }
 }
