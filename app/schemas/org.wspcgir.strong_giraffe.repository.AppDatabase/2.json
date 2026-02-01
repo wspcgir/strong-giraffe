@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "5d315addff6c0b8be5dd001a8ca15003",
+    "identityHash": "aff8a78bd0ab55bd15d5991ae5ac28b9",
     "entities": [
       {
         "tableName": "workout_set",
@@ -440,12 +440,12 @@
     "views": [
       {
         "viewName": "SetSummary",
-        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT workout_set.id\n             , exercise.name as exerciseName\n             , exercise.id as exerciseId\n             , exercise_variation.name as variationName\n             , exercise_variation.id as variationId\n             , workout_set.reps\n             , workout_set.weight\n             , workout_set.time\n             , workout_set.intensity\n        FROM workout_set\n          JOIN exercise on exercise.id = workout_set.exercise\n          JOIN exercise_variation on exercise_variation.id = workout_set.variation"
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT workout_set.id\n             , exercise.name as exerciseName\n             , exercise.id as exerciseId\n             , workout_set.reps\n             , workout_set.weight\n             , workout_set.time\n             , workout_set.intensity\n        FROM workout_set\n          JOIN exercise on exercise.id = workout_set.exercise"
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5d315addff6c0b8be5dd001a8ca15003')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'aff8a78bd0ab55bd15d5991ae5ac28b9')"
     ]
   }
 }
