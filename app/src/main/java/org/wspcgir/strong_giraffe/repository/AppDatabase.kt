@@ -25,17 +25,11 @@ import java.util.UUID
     views = [
         SetSummary::class
     ],
-    version = 3,
+    version = 2,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun dao(): AppDao
-}
-
-val MIGRATION_2_3 = object : Migration(2,3) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        // No migration work needed, only updated SetSummaries
-    }
 }
 
 val MIGRATION_1_2 = object : Migration(1,2) {

@@ -4,6 +4,11 @@ import androidx.room.DatabaseView
 
 @DatabaseView(
     """
+        SELECT exercise_variation.name as variationName
+             , exercise_variation.id as variationId
+             , location.id as locationId
+        FROM exercise_variation 
+          JOIN location ON exercise_variation.location = location.id
     """
 )
 data class ExerciseVariationWithLocation(
