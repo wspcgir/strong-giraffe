@@ -8,6 +8,7 @@ import org.wspcgir.strong_giraffe.repository.entity.set.SetContent
 import org.wspcgir.strong_giraffe.repository.entity.set.SetSummary
 import org.wspcgir.strong_giraffe.repository.entity.set.WorkoutSet
 import org.wspcgir.strong_giraffe.repository.entity.variation.ExerciseVariation
+import org.wspcgir.strong_giraffe.repository.entity.variation.ExerciseVariationWithLocation
 import org.wspcgir.strong_giraffe.repository.entity.variation.VariationContent
 
 @androidx.room.Dao
@@ -404,6 +405,19 @@ interface AppDao {
         """
     )
     suspend fun getVariationsForExercise(exerciseId: String): List<ExerciseVariation>
+
+    @Query("""
+      SELECT exercise_variation.id as id 
+           , exercise_variation.name as name 
+           , exercise_variation.exercise as exercise
+           , location.id as location
+           , location.name as locationName
+      FROM exercise_variation 
+        JOIN location ON exercise_variation.location = location.id
+      WHERE exercise = :exerciseId
+      """
+    )
+    suspend fun getVariationsForExerciseWithLocation(exerciseId: String): List<ExerciseVariationWithLocation>
 
     @Query(
         """
