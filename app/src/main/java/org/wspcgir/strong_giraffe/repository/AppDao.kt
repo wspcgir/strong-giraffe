@@ -407,9 +407,14 @@ interface AppDao {
     suspend fun getVariationsForExercise(exerciseId: String): List<ExerciseVariation>
 
     @Query("""
-       SELECT * 
-       FROM ExerciseVariationWithLocation
-       WHERE exercise = :exerciseId
+      SELECT exercise_variation.id as id 
+           , exercise_variation.name as name 
+           , exercise_variation.exercise as exercise
+           , location.id as location
+           , location.name as locationName
+      FROM exercise_variation 
+        JOIN location ON exercise_variation.location = location.id
+      WHERE exercise = :exerciseId
       """
     )
     suspend fun getVariationsForExerciseWithLocation(exerciseId: String): List<ExerciseVariationWithLocation>

@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import org.wspcgir.strong_giraffe.destinations.EditExercise
 import org.wspcgir.strong_giraffe.destinations.edit_variation.EditVariation
@@ -30,42 +31,45 @@ import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
 import org.wspcgir.strong_giraffe.model.ids.LocationId
 import org.wspcgir.strong_giraffe.model.variation.ExerciseVariation
 import org.wspcgir.strong_giraffe.model.variation.ExerciseVariationWithLocation
+import org.wspcgir.strong_giraffe.parcelableType
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.views.SelectionPage
 import kotlin.reflect.KType
-
-
-@Serializable
-object EditPage
-@Serializable
-object ListPage
-@Serializable
-object SelectExercise
-@Serializable
-object SelectVariation
-
+import kotlin.reflect.typeOf
 
 @Serializable
 object SetPage
 
+@Serializable
+object EditPage
+
+@Serializable
+object ListPage
+
+@Serializable
+object SelectExercise
+
+@Serializable
+object SelectVariation
+
 fun NavGraphBuilder.setGraph(
     navController: NavController,
     repo: AppRepository,
-    typeMap: Map<KType, NavType<out Parcelable>>
+    typeMap : Map<KType, NavType<out Parcelable>>
 ) {
     navigation<SetPage>(startDestination = ListPage, typeMap = typeMap) {
         composable<ListPage>(typeMap = typeMap) {
-            val parent = rememberParent(navController, it)
+            val parent = rememberParent<SetPage>(navController, it)
             val view = viewModel<SetListPageViewModel>(parent)
             LaunchedEffect(Unit) {
                 view.init(repo, navController)
             }
             RegisterSetListPage(view)
         }
-        navigation<EditSet>(startDestination = ListPage, typeMap = typeMap) {
+        navigation<EditSet>(startDestination = EditPage, typeMap = typeMap) {
             composable<EditPage>(typeMap = typeMap) {
-                val parent = rememberParent(navController, it)
-                val grandparent = rememberParent(navController, parent)
+                val parent = rememberParent<EditSet>(navController, it)
+                val grandparent = rememberParent<ListPage>(navController, parent)
                 val listView = viewModel<SetListPageViewModel>(grandparent)
                 val navArgs = parent.toRoute<EditSet>()
                 val view = viewModel<EditSetPageViewModel>(parent)
@@ -81,7 +85,7 @@ fun NavGraphBuilder.setGraph(
                 EditSetPage(view)
             }
             composable<SelectExercise>() { entry ->
-                val parent = rememberParent(navController, entry)
+                val parent = rememberParent<EditSet>(navController, entry)
                 val view = viewModel<EditSetPageViewModel>(parent)
                 var exercises: List<Exercise> by remember { mutableStateOf(emptyList()) }
                 LaunchedEffect(Unit) {
@@ -112,7 +116,7 @@ fun NavGraphBuilder.setGraph(
                 )
             }
             composable<SelectVariation> { entry ->
-                val parent = rememberParent(navController, entry)
+                val parent = rememberParent<EditSet>(navController, entry)
                 val view = viewModel<EditSetPageViewModel>(parent)
                 var variations: List<ExerciseVariationWithLocation> by remember { mutableStateOf(emptyList()) }
                 val data = view.data.value
@@ -120,7 +124,7 @@ fun NavGraphBuilder.setGraph(
                     when (data) {
                         is EditSetPageViewModel.Data.Loaded -> {
                             variations =
-                                repo.getVariationsForExercise(data.inProgress.value.exercise)
+                                repo.getVariationsForExerciseWithLocation(data.inProgress.value.exercise)
                         }
 
                         else -> {}
@@ -208,11 +212,11 @@ private fun SelectVariationPagePreview() {
 }
 
 @Composable
-private fun rememberParent(
+private inline fun <reified T : Any> rememberParent(
     navController: NavController,
     entry: NavBackStackEntry
 ): NavBackStackEntry {
     return remember(entry) {
-        navController.getBackStackEntry<EditSet>()
+        navController.getBackStackEntry<T>()
     }
 }

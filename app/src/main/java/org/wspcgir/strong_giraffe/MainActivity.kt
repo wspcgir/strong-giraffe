@@ -63,6 +63,10 @@ import org.wspcgir.strong_giraffe.destinations.MuscleListPageViewModel
 import org.wspcgir.strong_giraffe.destinations.set.setGraph
 import org.wspcgir.strong_giraffe.destinations.edit_variation.EditVariation
 import org.wspcgir.strong_giraffe.destinations.edit_variation.editVariationGraph
+import org.wspcgir.strong_giraffe.destinations.set.EditPage
+import org.wspcgir.strong_giraffe.destinations.set.ListPage
+import org.wspcgir.strong_giraffe.destinations.set.SelectExercise
+import org.wspcgir.strong_giraffe.destinations.set.SelectVariation
 import org.wspcgir.strong_giraffe.destinations.set.SetPage
 import org.wspcgir.strong_giraffe.model.Backup
 import org.wspcgir.strong_giraffe.model.Equipment
@@ -79,11 +83,13 @@ import org.wspcgir.strong_giraffe.model.ids.SetId
 import org.wspcgir.strong_giraffe.repository.AppDatabase
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.repository.MIGRATION_1_2
+import org.wspcgir.strong_giraffe.repository.MIGRATION_2_3
 import org.wspcgir.strong_giraffe.ui.theme.StrongGiraffeTheme
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Collections.emptyList
+import kotlin.collections.plus
 import kotlin.reflect.typeOf
 
 const val JSON_MIME = "application/json"
@@ -93,7 +99,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val db =
             Room.databaseBuilder(applicationContext, AppDatabase::class.java, "data.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
         val dao = db.dao()
         val repo = AppRepository(dao)

@@ -163,6 +163,7 @@ class EditSetPageViewModel() : ViewModel() {
                         time = inProgressMut.value.time
                     )
                     refreshSetList()
+                    Log.i("EditSetpage", "Submitted Set")
                 }
             }
 

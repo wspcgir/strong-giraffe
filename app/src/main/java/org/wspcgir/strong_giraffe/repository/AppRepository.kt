@@ -294,7 +294,19 @@ class AppRepository(private val dao: AppDao) {
         return es.map { e -> workoutSetFromEntity(e) }
     }
 
-    suspend fun getVariationsForExercise(exercise: ExerciseId): List<ExerciseVariationWithLocation> {
+    suspend fun getVariationsForExercise(exercise: ExerciseId): List<ExerciseVariation> {
+        val es = dao.getVariationsForExercise(exercise.value)
+        return es.map { e ->
+            ExerciseVariation(
+                id = ExerciseVariationId(e.id),
+                name = e.name,
+                exercise = ExerciseId(e.exercise),
+                location = e.location?.let { LocationId(it) },
+            )
+        }
+    }
+
+    suspend fun getVariationsForExerciseWithLocation(exercise: ExerciseId): List<ExerciseVariationWithLocation> {
         val es = dao.getVariationsForExerciseWithLocation(exercise.value)
         return es.map { e ->
             ExerciseVariationWithLocation(

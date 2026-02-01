@@ -70,15 +70,17 @@ class SetListPageViewModel : ViewModel() {
         repo: AppRepository,
         navController: NavController
     ) {
+        Log.i("SetListPage", "Initializing SetListPage")
         viewModelScope.launch {
             val summaries = repo.getSetSummaries()
+            Log.i("SetListPage", "Loaded ${summaries.size} sets")
             val latest = summaries.firstOrNull()
             if (latest != null) {
                 _data.value = Data.Loaded(
                     scope = viewModelScope,
                     repo = repo,
                     navController = navController,
-                    _setSummaries = mutableStateOf(emptyList()),
+                    _setSummaries = mutableStateOf(summaries),
                     _currentExercise = mutableStateOf(latest.exerciseId)
                 )
             } else {
@@ -88,7 +90,7 @@ class SetListPageViewModel : ViewModel() {
                         scope = viewModelScope,
                         repo = repo,
                         navController = navController,
-                        _setSummaries = mutableStateOf(emptyList()),
+                        _setSummaries = mutableStateOf(summaries),
                         _currentExercise = mutableStateOf(exercise.id)
                     )
                 } else {
@@ -160,6 +162,7 @@ class SetListPageViewModel : ViewModel() {
             fun refresh() {
                 scope.launch {
                     _setSummaries.value = repo.getSetSummaries()
+                    Log.i("SetListPage", "Refreshed data")
                 }
             }
         }

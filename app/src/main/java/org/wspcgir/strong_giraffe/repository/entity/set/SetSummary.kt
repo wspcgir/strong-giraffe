@@ -15,7 +15,7 @@ import androidx.room.DatabaseView
              , workout_set.intensity
         FROM workout_set
           JOIN exercise on exercise.id = workout_set.exercise
-          JOIN exercise_variation on exercise_variation.id = workout_set.variation
+          LEFT JOIN exercise_variation on exercise_variation.id = workout_set.variation
     """
 )
 data class SetSummary(
