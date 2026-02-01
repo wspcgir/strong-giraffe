@@ -9,6 +9,7 @@ import org.wspcgir.strong_giraffe.model.set.SetSummary
 import org.wspcgir.strong_giraffe.model.set.SetsForMuscleInWeek
 import org.wspcgir.strong_giraffe.model.set.WorkoutSet
 import org.wspcgir.strong_giraffe.model.variation.ExerciseVariation
+import org.wspcgir.strong_giraffe.model.variation.ExerciseVariationWithLocation
 import org.wspcgir.strong_giraffe.model.variation.VariationContent
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -137,7 +138,9 @@ class AppRepository(private val dao: AppDao) {
                     Instant.ofEpochSecond(e.time),
                     TimeZone.getDefault().toZoneId()
                 ),
-                intensity = Intensity.fromInt(e.intensity)!!
+                intensity = Intensity.fromInt(e.intensity)!!,
+                variationName = e.variationName,
+                variationId = e.variationId?.let { ExerciseVariationId(it) },
             )
         }
     }
@@ -293,12 +296,26 @@ class AppRepository(private val dao: AppDao) {
 
     suspend fun getVariationsForExercise(exercise: ExerciseId): List<ExerciseVariation> {
         val es = dao.getVariationsForExercise(exercise.value)
-        return es.map { e -> ExerciseVariation(
-            ExerciseVariationId(e.id),
-            e.name,
-            ExerciseId(e.exercise),
-            e.location?.let { LocationId(it) }
-        )
+        return es.map { e ->
+            ExerciseVariation(
+                id = ExerciseVariationId(e.id),
+                name = e.name,
+                exercise = ExerciseId(e.exercise),
+                location = e.location?.let { LocationId(it) },
+            )
+        }
+    }
+
+    suspend fun getVariationsForExerciseWithLocation(exercise: ExerciseId): List<ExerciseVariationWithLocation> {
+        val es = dao.getVariationsForExerciseWithLocation(exercise.value)
+        return es.map { e ->
+            ExerciseVariationWithLocation(
+              id = ExerciseVariationId(e.id),
+              name = e.name,
+              exercise = ExerciseId(e.exercise),
+              location = e.location?.let { LocationId(it) },
+              locationName = e.locationName
+            )
         }
     }
 

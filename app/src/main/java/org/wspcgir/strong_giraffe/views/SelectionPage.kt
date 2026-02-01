@@ -82,9 +82,8 @@ fun <T> SelectionPage(
                 Icon(Icons.Filled.Add, contentDescription = "create new")
             }
         }
-    ) {
-        Column(modifier = Modifier.fillMaxHeight()) {
-            Spacer(modifier = Modifier.fillMaxHeight(0.1f))
+    ) { scaffoldPadding ->
+        Column(modifier = Modifier.fillMaxHeight().padding(scaffoldPadding)) {
             LazyColumn(
                 modifier = Modifier
                     .padding(10.dp)
