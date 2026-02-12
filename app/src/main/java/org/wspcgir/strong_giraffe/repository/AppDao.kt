@@ -413,7 +413,7 @@ interface AppDao {
            , location.id as location
            , location.name as locationName
       FROM exercise_variation 
-        JOIN location ON exercise_variation.location = location.id
+        LEFT JOIN location ON exercise_variation.location = location.id
       WHERE exercise = :exerciseId
       """
     )
