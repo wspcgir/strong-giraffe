@@ -67,6 +67,7 @@ import org.wspcgir.strong_giraffe.model.ids.ExerciseId
 import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
 import org.wspcgir.strong_giraffe.model.ids.LocationId
 import org.wspcgir.strong_giraffe.model.ids.SetId
+import org.wspcgir.strong_giraffe.model.set.SetSummary
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.ui.theme.StrongGiraffeTheme
 import org.wspcgir.strong_giraffe.views.FIELD_NAME_FONT_SIZE
@@ -99,7 +100,7 @@ class EditSetPageViewModel() : ViewModel() {
         dest: NavController,
         setId: SetId,
         locked: Boolean,
-        refreshSetList: () -> Unit
+        updateSet: (SetContent) -> Unit
     ) {
         when (data.value) {
             is Data.Empty -> {
@@ -119,7 +120,7 @@ class EditSetPageViewModel() : ViewModel() {
                         previousSetsMut = mutableStateOf(previousSets),
                         inProgressMut = mutableStateOf(set),
                         lockedMut = mutableStateOf(locked),
-                        refreshSetList = refreshSetList
+                        updateSet = updateSet
                     )
                 }
             }
@@ -135,7 +136,7 @@ class EditSetPageViewModel() : ViewModel() {
             private val previousSetsMut: MutableState<List<WorkoutSet>>,
             private val inProgressMut: MutableState<SetContent>,
             private val lockedMut: MutableState<Boolean>,
-            private val refreshSetList: () -> Unit,
+            private val updateSet: (SetContent) -> Unit,
         ) : Data {
             val locked: State<Boolean>
                 get() = lockedMut
@@ -151,6 +152,7 @@ class EditSetPageViewModel() : ViewModel() {
             }
 
             fun submit() {
+                updateSet(inProgress.value)
                 scope.launch {
                     repo.updateWorkoutSet(
                         id = inProgress.value.id,
@@ -162,7 +164,6 @@ class EditSetPageViewModel() : ViewModel() {
                         comment = inProgress.value.comment,
                         time = inProgressMut.value.time
                     )
-                    refreshSetList()
                     Log.i("EditSetpage", "Submitted Set")
                 }
             }

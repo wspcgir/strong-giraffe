@@ -7,7 +7,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewModelScope
@@ -20,22 +19,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import org.wspcgir.strong_giraffe.destinations.EditExercise
 import org.wspcgir.strong_giraffe.destinations.edit_variation.EditVariation
 import org.wspcgir.strong_giraffe.model.Exercise
-import org.wspcgir.strong_giraffe.model.Location
 import org.wspcgir.strong_giraffe.model.ids.ExerciseId
 import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
 import org.wspcgir.strong_giraffe.model.ids.LocationId
-import org.wspcgir.strong_giraffe.model.variation.ExerciseVariation
 import org.wspcgir.strong_giraffe.model.variation.ExerciseVariationWithLocation
-import org.wspcgir.strong_giraffe.parcelableType
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.views.SelectionPage
 import kotlin.reflect.KType
-import kotlin.reflect.typeOf
 
 @Serializable
 object SetPage
@@ -69,15 +63,15 @@ fun NavGraphBuilder.setGraph(
         navigation<EditSet>(startDestination = EditPage, typeMap = typeMap) {
             composable<EditPage>(typeMap = typeMap) {
                 val parent = rememberParent<EditSet>(navController, it)
-                val grandparent = rememberParent<ListPage>(navController, parent)
+                val grandparent = rememberParent<SetPage>(navController, parent)
                 val listView = viewModel<SetListPageViewModel>(grandparent)
                 val navArgs = parent.toRoute<EditSet>()
                 val view = viewModel<EditSetPageViewModel>(parent)
                 LaunchedEffect(navArgs.id) {
                     Log.d("editSetGraph", "Initializing EditSet page view model")
-                    view.init(repo, navController, navArgs.id, navArgs.locked) {
+                    view.init(repo, navController, navArgs.id, navArgs.locked) { updatedSet ->
                         when (val data = listView.data.value) {
-                            is SetListPageViewModel.Data.Loaded -> { data.refresh() }
+                            is SetListPageViewModel.Data.Loaded -> { data.updateSet(updatedSet) }
                             else -> { }
                         }
                     }

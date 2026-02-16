@@ -48,6 +48,7 @@ import org.wspcgir.strong_giraffe.model.ids.ExerciseId
 import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
 import org.wspcgir.strong_giraffe.model.ids.MuscleId
 import org.wspcgir.strong_giraffe.model.ids.SetId
+import org.wspcgir.strong_giraffe.model.set.SetContent
 import org.wspcgir.strong_giraffe.model.set.SetSummary
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.ui.theme.StrongGiraffeTheme
@@ -135,6 +136,7 @@ class SetListPageViewModel : ViewModel() {
             fun new() {
                 scope.launch {
                     val set = repo.newWorkoutSet(_currentExercise.value)
+
                     val latest = repo.latestSetNot(set.id)
                     if (latest != null) {
                         Log.i("NEW SET", "Using previous set '${latest.id}'")
@@ -159,10 +161,49 @@ class SetListPageViewModel : ViewModel() {
                 }
             }
 
-            fun refresh() {
+            fun updateSet(updated: SetContent) {
                 scope.launch {
-                    _setSummaries.value = repo.getSetSummaries()
-                    Log.i("SetListPage", "Refreshed data")
+                    Log.i("SetListPage", "Updating set ${updated.id}")
+                }
+                // Do a linear search for a pre-existing set, the number
+                // of sets should be small enough that this isn't a huge
+                // performance impact, but I'll want to refactor this
+                // at some point.
+                var found = false
+                _setSummaries.value = _setSummaries.value.map { s ->
+                    if (s.id == updated.id) {
+                        found = true
+                        s.copy(
+                            exerciseName = updated.exerciseName,
+                            exerciseId = updated.exercise,
+                            variationId = updated.variation,
+                            variationName = updated.variationName,
+                            weight = updated.weight,
+                            intensity = updated.intensity,
+                            reps = updated.reps,
+                        )
+                    } else {
+                        s
+                    }
+                }
+                if (!found) {
+                    // If it's a new set, then prepend it to the list
+                    _setSummaries.value = listOf(
+                        SetSummary(
+                            id = updated.id,
+                            exerciseName = updated.exerciseName,
+                            exerciseId = updated.exercise,
+                            variationName = updated.variationName,
+                            variationId = updated.variation,
+                            reps = updated.reps,
+                            weight = updated.weight,
+                            time = updated.time.toOffsetDatetime(),
+                            intensity = updated.intensity
+                        )
+                    ).plus(_setSummaries.value)
+                }
+                scope.launch {
+                    Log.i("SetListPage", "Set ${updated.id} updated")
                 }
             }
         }
