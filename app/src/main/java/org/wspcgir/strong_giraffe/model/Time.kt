@@ -9,6 +9,8 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.util.TimeZone
 
 @Serializable(with = Time.Serializer::class)
 data class Time(val value: Instant) {
@@ -24,6 +26,12 @@ data class Time(val value: Instant) {
         override fun serialize(encoder: Encoder, value: Time) {
             Long.serializer().serialize(encoder, value.value.epochSecond)
         }
+    }
 
+    fun toOffsetDatetime(): OffsetDateTime {
+        return OffsetDateTime.ofInstant(
+            Instant.ofEpochSecond(value.epochSecond),
+            TimeZone.getDefault().toZoneId()
+        )
     }
 }
