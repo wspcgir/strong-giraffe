@@ -13,6 +13,7 @@ import org.wspcgir.strong_giraffe.model.set.SetSummary
 import org.wspcgir.strong_giraffe.model.WeekRange
 import org.wspcgir.strong_giraffe.model.Weight
 import org.wspcgir.strong_giraffe.model.ids.ExerciseId
+import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
 import org.wspcgir.strong_giraffe.model.ids.SetId
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -47,7 +48,9 @@ class Properties: DescribeSpec({
                 reps = Reps(1),
                 weight = Weight(20f),
                 time =  now,
-                intensity = Intensity.Normal
+                intensity = Intensity.Normal,
+                variationName = "",
+                variationId = ExerciseVariationId("")
             )
             val sets = listOf(template, template.copy(time = now.minusNanos(100)))
             val groups = Group.fromList(sets) { it.time }
@@ -62,7 +65,9 @@ class Properties: DescribeSpec({
                 reps = Reps(1),
                 weight = Weight(20f),
                 time = now,
-                intensity = Intensity.Normal
+                intensity = Intensity.Normal,
+                variationName = "",
+                variationId = ExerciseVariationId("")
             )
             val sets = listOf(
                 template,
