@@ -275,7 +275,7 @@ private fun Page(
                 if (days.isNotEmpty()) {
                     LazyColumn(
                         contentPadding = PaddingValues(10.dp),
-                        verticalArrangement = Arrangement.SpaceEvenly
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         this.items(days) { day ->
                             DaySetsCard(
