@@ -5,6 +5,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -271,7 +273,17 @@ private fun Page(
                 verticalArrangement = Arrangement.Center
             ) {
                 if (days.isNotEmpty()) {
-                    LazyColumn { this.items(days) { day -> DaySetsCard(day, goto,) } }
+                    LazyColumn(
+                        contentPadding = PaddingValues(10.dp),
+                        verticalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        this.items(days) { day ->
+                            DaySetsCard(
+                                day = day,
+                                goto = goto,
+                            )
+                        }
+                    }
                 } else {
                     Text("There's nothing here yet")
                 }

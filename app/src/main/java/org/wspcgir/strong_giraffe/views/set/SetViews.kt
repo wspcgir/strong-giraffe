@@ -52,10 +52,7 @@ public fun DaySetsCard(
     showExerciseNames: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier
-            .padding(10.dp)
-    ) {
+    Card(modifier = modifier) {
         Column(
             modifier = Modifier.Companion.padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
