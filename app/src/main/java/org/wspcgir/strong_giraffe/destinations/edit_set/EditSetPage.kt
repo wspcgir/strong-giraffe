@@ -4,6 +4,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Parcelable
 import android.util.Log
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,8 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -351,9 +354,11 @@ fun Page(
         }
     ) { innerPadding ->
 
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .verticalScroll(scrollState)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -414,14 +419,13 @@ fun Page(
                 }
             }
             val days = SetSummary.groupSetsByDateAndExercise(previousSets.value)
-            LazyColumn(modifier = Modifier.fillMaxWidth(0.8f)) {
-                this.items(days) { day ->
-                    DaySetsCard(
-                        day = day,
-                        goto = { s -> gotoSet(s.id) },
-                        showExerciseNames = false,
-                        modifier = Modifier.fillMaxWidth()
-                    ) }
+            days.forEach { day ->
+                DaySetsCard(
+                    day = day,
+                    goto = { s -> gotoSet(s.id) },
+                    showExerciseNames = false,
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
             }
             Spacer(modifier = Modifier.fillMaxHeight(0.1f))
         }
@@ -580,7 +584,7 @@ private fun Preview() {
             gotoSet = { },
             previousSets = remember {
                 mutableStateOf(
-                    listOf(prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate)
+                    listOf(prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate)
                 )
             }
         )
