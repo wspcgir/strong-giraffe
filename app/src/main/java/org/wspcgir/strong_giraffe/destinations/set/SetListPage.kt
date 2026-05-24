@@ -31,6 +31,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.wspcgir.strong_giraffe.destinations.edit_set.EditSet
 import org.wspcgir.strong_giraffe.model.Group
 import org.wspcgir.strong_giraffe.model.Intensity
 import org.wspcgir.strong_giraffe.model.Reps
@@ -270,7 +271,7 @@ private fun Page(
                 verticalArrangement = Arrangement.Center
             ) {
                 if (days.isNotEmpty()) {
-                    LazyColumn { this.items(days) { day -> DaySetsCard(day, goto) } }
+                    LazyColumn { this.items(days) { day -> DaySetsCard(day, goto,) } }
                 } else {
                     Text("There's nothing here yet")
                 }

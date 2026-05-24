@@ -46,7 +46,7 @@ import org.wspcgir.strong_giraffe.destinations.EditLocationPageViewModel
 import org.wspcgir.strong_giraffe.destinations.EditMuscle
 import org.wspcgir.strong_giraffe.destinations.EditMusclePage
 import org.wspcgir.strong_giraffe.destinations.EditMusclePageViewModel
-import org.wspcgir.strong_giraffe.destinations.set.EditSet
+import org.wspcgir.strong_giraffe.destinations.edit_set.EditSet
 import org.wspcgir.strong_giraffe.destinations.EquipmentList
 import org.wspcgir.strong_giraffe.destinations.EquipmentListPage
 import org.wspcgir.strong_giraffe.destinations.EquipmentListPageViewModel
@@ -63,10 +63,6 @@ import org.wspcgir.strong_giraffe.destinations.MuscleListPageViewModel
 import org.wspcgir.strong_giraffe.destinations.set.setGraph
 import org.wspcgir.strong_giraffe.destinations.edit_variation.EditVariation
 import org.wspcgir.strong_giraffe.destinations.edit_variation.editVariationGraph
-import org.wspcgir.strong_giraffe.destinations.set.EditPage
-import org.wspcgir.strong_giraffe.destinations.set.ListPage
-import org.wspcgir.strong_giraffe.destinations.set.SelectExercise
-import org.wspcgir.strong_giraffe.destinations.set.SelectVariation
 import org.wspcgir.strong_giraffe.destinations.set.SetPage
 import org.wspcgir.strong_giraffe.model.Backup
 import org.wspcgir.strong_giraffe.model.Equipment
@@ -89,7 +85,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Collections.emptyList
-import kotlin.collections.plus
 import kotlin.reflect.typeOf
 
 const val JSON_MIME = "application/json"

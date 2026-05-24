@@ -20,6 +20,7 @@ import org.wspcgir.strong_giraffe.repository.entity.Muscle as MuscleEntity
 import org.wspcgir.strong_giraffe.repository.entity.Exercise as ExerciseEntity
 import org.wspcgir.strong_giraffe.repository.entity.set.WorkoutSet as WorkoutSetEntity
 import org.wspcgir.strong_giraffe.repository.entity.variation.ExerciseVariation as ExerciseVariationEntity
+import org.wspcgir.strong_giraffe.repository.entity.set.SetSummary as SetSummaryEntity
 
 class AppRepository(private val dao: AppDao) {
     suspend fun newLocation(id: String = UUID.randomUUID().toString()): Location {
@@ -127,8 +128,11 @@ class AppRepository(private val dao: AppDao) {
 
     suspend fun getSetSummaries(): List<SetSummary> {
         val entities = dao.getSetSummaries()
-        return entities.map { e ->
-            SetSummary(
+        return entities.map { e -> setSummaryFromEntity(e) }
+    }
+
+    private fun setSummaryFromEntity(e: SetSummaryEntity): SetSummary {
+            return SetSummary(
                 id = SetId(e.id),
                 exerciseName = e.exerciseName,
                 exerciseId = ExerciseId(e.exerciseId),
@@ -143,7 +147,6 @@ class AppRepository(private val dao: AppDao) {
                 variationId = e.variationId?.let { ExerciseVariationId(it) },
             )
         }
-    }
 
     suspend fun updateWorkoutSet(
         original: WorkoutSet,
@@ -284,14 +287,14 @@ class AppRepository(private val dao: AppDao) {
         exercise: ExerciseId,
         variation: ExerciseVariationId?,
         limit: Int
-    ): List<WorkoutSet> {
-        val es = dao.workoutSetsForExerciseWithVariationBefore(
+    ): List<SetSummary> {
+        val es = dao.setSummariesForExerciseWithVariationBefore(
             cutoff.value.epochSecond,
             exercise.value,
             variation?.value,
             limit
         )
-        return es.map { e -> workoutSetFromEntity(e) }
+        return es.map { e -> setSummaryFromEntity(e) }
     }
 
     suspend fun getVariationsForExercise(exercise: ExerciseId): List<ExerciseVariation> {

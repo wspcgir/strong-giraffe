@@ -21,6 +21,9 @@ import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.wspcgir.strong_giraffe.destinations.EditExercise
+import org.wspcgir.strong_giraffe.destinations.edit_set.EditSet
+import org.wspcgir.strong_giraffe.destinations.edit_set.EditSetPage
+import org.wspcgir.strong_giraffe.destinations.edit_set.EditSetPageViewModel
 import org.wspcgir.strong_giraffe.destinations.edit_variation.EditVariation
 import org.wspcgir.strong_giraffe.model.Exercise
 import org.wspcgir.strong_giraffe.model.ids.ExerciseId

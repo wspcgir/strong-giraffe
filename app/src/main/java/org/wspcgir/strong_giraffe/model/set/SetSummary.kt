@@ -1,5 +1,6 @@
 package org.wspcgir.strong_giraffe.model.set
 
+import org.wspcgir.strong_giraffe.model.Group
 import org.wspcgir.strong_giraffe.model.Intensity
 import org.wspcgir.strong_giraffe.model.Reps
 import org.wspcgir.strong_giraffe.model.Weight
@@ -18,4 +19,18 @@ data class SetSummary(
     val weight: Weight,
     val time: OffsetDateTime,
     val intensity: Intensity,
-)
+) {
+    companion object {
+        fun groupSetsByDateAndExercise(sets: List<SetSummary>): List<Group<Group<SetSummary>>> {
+            return Group.fromList(sets.sortedBy { it.time }.asReversed()) {
+                it.time
+                    .withHour(0)
+                    .withMinute(0)
+                    .withSecond(0)
+                    .withNano(0)
+            }.map { group ->
+                group.innerGroup { it.exerciseId.value + (it.variationId?.value ?: "") }
+            }
+        }
+    }
+}

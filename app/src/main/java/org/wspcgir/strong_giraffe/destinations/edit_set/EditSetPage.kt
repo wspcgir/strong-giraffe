@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -56,25 +56,27 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import org.wspcgir.strong_giraffe.destinations.set.SelectExercise
+import org.wspcgir.strong_giraffe.destinations.set.SelectVariation
 import org.wspcgir.strong_giraffe.model.Comment
 import org.wspcgir.strong_giraffe.model.Intensity
 import org.wspcgir.strong_giraffe.model.Reps
 import org.wspcgir.strong_giraffe.model.set.SetContent
 import org.wspcgir.strong_giraffe.model.Time
 import org.wspcgir.strong_giraffe.model.Weight
-import org.wspcgir.strong_giraffe.model.set.WorkoutSet
 import org.wspcgir.strong_giraffe.model.ids.ExerciseId
 import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
 import org.wspcgir.strong_giraffe.model.ids.LocationId
 import org.wspcgir.strong_giraffe.model.ids.SetId
+import org.wspcgir.strong_giraffe.model.set.SetSummary
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.ui.theme.StrongGiraffeTheme
 import org.wspcgir.strong_giraffe.views.FIELD_NAME_FONT_SIZE
 import org.wspcgir.strong_giraffe.views.IntField
 import org.wspcgir.strong_giraffe.views.ModalDrawerScaffold
-import org.wspcgir.strong_giraffe.views.PreviousSetButton
 import org.wspcgir.strong_giraffe.views.SelectionField
 import org.wspcgir.strong_giraffe.views.intensityColor
+import org.wspcgir.strong_giraffe.views.set.DaySetsCard
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -85,7 +87,7 @@ import kotlin.math.roundToInt
 @Parcelize
 data class EditSet(val id: SetId, val locked: Boolean) : Parcelable
 
-const val NUM_PREVIOUS_SETS = 6
+const val NUM_PREVIOUS_SETS = 100
 
 class EditSetPageViewModel() : ViewModel() {
 
@@ -94,7 +96,13 @@ class EditSetPageViewModel() : ViewModel() {
     val data: State<Data>
         get() = dataMut
 
-    fun init(repo: AppRepository, dest: NavController, setId: SetId, locked: Boolean) {
+    fun init(
+        repo: AppRepository,
+        dest: NavController,
+        setId: SetId,
+        locked: Boolean,
+        updateSet: (SetContent) -> Unit
+    ) {
         when (data.value) {
             is Data.Empty -> {
                 viewModelScope.launch {
@@ -125,7 +133,7 @@ class EditSetPageViewModel() : ViewModel() {
             val repo: AppRepository,
             val dest: NavController,
             val scope: CoroutineScope,
-            private val previousSetsMut: MutableState<List<WorkoutSet>>,
+            private val previousSetsMut: MutableState<List<SetSummary>>,
             private val inProgressMut: MutableState<SetContent>,
             private val lockedMut: MutableState<Boolean>,
         ) : Data {
@@ -135,7 +143,7 @@ class EditSetPageViewModel() : ViewModel() {
             val inProgress: State<SetContent>
                 get() = inProgressMut
 
-            val previousSets: State<List<WorkoutSet>>
+            val previousSets: State<List<SetSummary>>
                 get() = previousSetsMut
 
             fun goBack() {
@@ -154,6 +162,7 @@ class EditSetPageViewModel() : ViewModel() {
                         comment = inProgress.value.comment,
                         time = inProgressMut.value.time
                     )
+                    Log.i("EditSetpage", "Submitted Set")
                 }
             }
 
@@ -284,7 +293,7 @@ fun Page(
     changeIntensity: (Intensity) -> Unit,
     changeComment: (Comment) -> Unit,
     gotoSet: (SetId) -> Unit,
-    previousSets: State<List<WorkoutSet>>
+    previousSets: State<List<SetSummary>>
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val validReps = remember { mutableStateOf(true) }
@@ -404,11 +413,15 @@ fun Page(
                     )
                 }
             }
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                this.item { Spacer(modifier = Modifier.width(25.dp)) }
-                this.items(previousSets.value) { set ->
-                    PreviousSetButton(set.reps, set.weight, set.intensity) { gotoSet(set.id) }
-                }
+            val days = SetSummary.groupSetsByDateAndExercise(previousSets.value)
+            LazyColumn(modifier = Modifier.fillMaxWidth(0.8f)) {
+                this.items(days) { day ->
+                    DaySetsCard(
+                        day = day,
+                        goto = { s -> gotoSet(s.id) },
+                        showExerciseNames = false,
+                        modifier = Modifier.fillMaxWidth()
+                    ) }
             }
             Spacer(modifier = Modifier.fillMaxHeight(0.1f))
         }
@@ -539,17 +552,16 @@ private fun Preview() {
             comment = Comment("")
         )
     val prevSetTemplate =
-        WorkoutSet(
+        SetSummary(
             id = SetId("a"),
-            exercise = ExerciseId("a"),
-            variation = ExerciseVariationId("variationA"),
+            exerciseName = "Name",
+            exerciseId = ExerciseId("a"),
+            variationName = "Variation",
+            variationId = ExerciseVariationId("variationA"),
             reps = Reps(0),
             weight = Weight(0.0f),
-            time = Time(Instant.now()),
+            time = OffsetDateTime.now(),
             intensity = Intensity.Normal,
-            comment = Comment(""),
-            location = null,
-            equipment = null
         )
     StrongGiraffeTheme {
         Page(

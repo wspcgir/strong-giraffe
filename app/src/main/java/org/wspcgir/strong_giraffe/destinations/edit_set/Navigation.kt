@@ -7,6 +7,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,9 +43,24 @@ fun NavGraphBuilder.editSetGraph(
             val parent = rememberParent(navController, it)
             val navArgs = parent.toRoute<EditSet>()
             val view = viewModel<EditSetPageViewModel>(parent)
+            val scope = rememberCoroutineScope()
             LaunchedEffect(navArgs.id) {
                 Log.d("editSetGraph", "Initializing EditSet page view model")
-                view.init(repo, navController, navArgs.id, navArgs.locked)
+                view.init(repo, navController, navArgs.id, navArgs.locked, updateSet = { s ->
+                    scope.launch {
+                        repo.updateWorkoutSet(
+                            id = s.id,
+                            exercise = s.exercise,
+                            variation = s.variation,
+                            reps = s.reps,
+                            weight = s.weight,
+                            time = s.time,
+                            intensity = s.intensity,
+                            comment = s.comment,
+                            location = null
+                        )
+                    }
+                })
             }
             EditSetPage(view)
         }

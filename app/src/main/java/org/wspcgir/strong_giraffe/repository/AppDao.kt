@@ -272,29 +272,28 @@ interface AppDao {
     @Query(
         """
             SELECT id
-                 , exercise
-                 , location
-                 , variation 
-                 , equipment 
+                 , exerciseName
+                 , exerciseId
+                 , variationName
+                 , variationId
                  , reps
                  , weight
                  , time
                  , intensity
-                 , comment
-            FROM workout_set
+            FROM SetSummary 
             WHERE time < :cutoff
-              AND exercise  = :exercise
-              AND variation = :variation
+              AND exerciseId  = :exercise
+              AND variationId = :variation
             ORDER BY time DESC
             LIMIT :limit
         """
     )
-    suspend fun workoutSetsForExerciseWithVariationBefore(
+    suspend fun setSummariesForExerciseWithVariationBefore(
         cutoff: Long,
         exercise: String,
         variation: String?,
         limit: Int
-    ): List<WorkoutSet>
+    ): List<SetSummary>
 
     @Query(
         """ 

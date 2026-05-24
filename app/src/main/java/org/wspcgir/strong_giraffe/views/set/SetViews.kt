@@ -26,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
@@ -34,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import org.wspcgir.strong_giraffe.model.Group
 import org.wspcgir.strong_giraffe.model.Intensity
 import org.wspcgir.strong_giraffe.model.Reps
-import org.wspcgir.strong_giraffe.model.Time
 import org.wspcgir.strong_giraffe.model.Weight
 import org.wspcgir.strong_giraffe.model.ids.ExerciseId
 import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
@@ -44,20 +42,19 @@ import org.wspcgir.strong_giraffe.ui.theme.StrongGiraffeTheme
 import org.wspcgir.strong_giraffe.views.FIELD_NAME_FONT_SIZE
 import org.wspcgir.strong_giraffe.views.PreviousSetButton
 import org.wspcgir.strong_giraffe.views.SMALL_NAME_FONT_SIZE
-import java.time.Instant
 import java.time.OffsetDateTime
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-fun DaySetsCard(
+public fun DaySetsCard(
     day: Group<Group<SetSummary>>,
     goto: (SetSummary) -> Unit,
     showExerciseNames: Boolean = true,
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = Modifier.Companion
+        modifier = modifier
             .padding(10.dp)
-            .fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.Companion.padding(10.dp),
@@ -78,12 +75,12 @@ fun DaySetsCard(
                 }
 
                 CompositionLocalProvider(
-                    LocalLayoutDirection.provides(LayoutDirection.Rtl)
+                    LocalLayoutDirection.provides(LayoutDirection.Ltr)
                 ) {
                     FlowRow(
                         horizontalArrangement = Arrangement.Absolute.Left
                     ) {
-                        listOf(sets.first).plus(sets.rest).reversed().forEach { set ->
+                        listOf(sets.first).plus(sets.rest).forEach { set ->
                             PreviousSetButton(set.reps, set.weight, set.intensity) {
                                 goto(set)
                             }
@@ -163,8 +160,7 @@ private fun Preview() {
                 first = Group (first = proto, emptyList()),
                 rest = listOf(Group(first = proto1, emptyList()))
             ),
-            showExerciseNames = true,
-            goto = { }
+            goto = { },
         )
     }
 }
