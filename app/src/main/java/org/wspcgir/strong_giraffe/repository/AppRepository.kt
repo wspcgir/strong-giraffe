@@ -138,10 +138,7 @@ class AppRepository(private val dao: AppDao) {
                 exerciseId = ExerciseId(e.exerciseId),
                 reps = Reps(e.reps),
                 weight = Weight(e.weight),
-                time = OffsetDateTime.ofInstant(
-                    Instant.ofEpochSecond(e.time),
-                    TimeZone.getDefault().toZoneId()
-                ),
+                time = Time.fromEpochSecond(e.time).toOffsetDatetime(),
                 intensity = Intensity.fromInt(e.intensity)!!,
                 variationName = e.variationName,
                 variationId = e.variationId?.let { ExerciseVariationId(it) },
@@ -207,7 +204,7 @@ class AppRepository(private val dao: AppDao) {
             reps = Reps(e.reps),
             weight = Weight(e.weight),
             intensity = Intensity.fromInt(e.intensity)!!,
-            time = Time(Instant.ofEpochSecond(e.time)),
+            time = Time.fromEpochSecond(e.time),
             comment = Comment(e.comment)
         )
     }
@@ -264,7 +261,7 @@ class AppRepository(private val dao: AppDao) {
             reps = Reps(e.reps),
             weight = Weight(e.weight),
             intensity = Intensity.fromInt(e.intensity)!!,
-            time = Time(Instant.ofEpochSecond(e.time)),
+            time = Time.fromEpochSecond(e.time),
             comment = Comment(e.comment)
         )
     }
@@ -352,7 +349,7 @@ class AppRepository(private val dao: AppDao) {
                 location = it.location?.let { l -> LocationId(l) },
                 comment = Comment(it.comment),
                 reps = Reps(it.reps),
-                time = Time(Instant.ofEpochSecond(it.time)),
+                time = Time.fromEpochSecond(it.time),
                 equipment = it.equipment?.let { e -> EquipmentId(e) },
                 weight = Weight(it.weight),
                 intensity = Intensity.fromInt(it.intensity)!!

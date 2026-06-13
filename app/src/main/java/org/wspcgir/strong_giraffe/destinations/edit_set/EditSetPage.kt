@@ -364,12 +364,8 @@ fun Page(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Spacer(modifier = Modifier.weight(1.0f))
-            val zone = TimeZone.getDefault().toZoneId()
-            val date = OffsetDateTime.ofInstant(starting.value.time.value, zone)
-            val dateFormat = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
-            val timeFormat = DateTimeFormatter.ofPattern("HH:MM:ss")
-            Text(date.format(dateFormat), fontSize = FIELD_NAME_FONT_SIZE)
-            Text(date.format(timeFormat), fontSize = FIELD_NAME_FONT_SIZE)
+            Text(starting.value.time.asFormattedDate(), fontSize = FIELD_NAME_FONT_SIZE)
+            Text(starting.value.time.asFormattedTime(), fontSize = FIELD_NAME_FONT_SIZE)
             Card {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
