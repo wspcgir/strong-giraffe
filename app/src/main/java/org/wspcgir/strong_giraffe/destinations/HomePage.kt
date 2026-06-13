@@ -13,19 +13,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import org.wspcgir.strong_giraffe.views.ModalDrawerScaffold
 
 @Composable
-fun BottomBar(
+fun Drawer(
     backupData: () -> Unit,
-    restoreFromBackup: () -> Unit
+    restoreFromBackup: () -> Unit,
+    exportCSV: () -> Unit
 ) {
     Button(onClick = backupData) {
         Text("Backup")
     }
     Button(onClick = restoreFromBackup) {
         Text("Restore")
+    }
+    Button(onClick = exportCSV) {
+        Text("Export CSV")
     }
 }
 
@@ -37,11 +40,12 @@ fun HomePage(
     gotoExerciseList: () -> Unit,
     gotoSetList: () -> Unit,
     createBackup: () -> Unit,
-    restoreFromBackup: () -> Unit
+    restoreFromBackup: () -> Unit,
+    exportCSV: () -> Unit,
 ) {
     ModalDrawerScaffold(
         title = "Strong Giraffe",
-        drawerContent = { BottomBar(createBackup, restoreFromBackup) },
+        drawerContent = { Drawer(createBackup, restoreFromBackup, exportCSV) },
         actionButton = { }
     ) { innerPadding ->
 
@@ -80,5 +84,5 @@ fun HomePage(
 @Preview
 @Composable
 fun HomePagePreview() {
-    HomePage({}, {}, {}, {}, {}, {})
+    HomePage({}, {}, {}, {}, {}, {}, {})
 }

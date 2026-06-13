@@ -388,6 +388,13 @@ class AppRepository(private val dao: AppDao) {
             variations = getVariations()
         )
     }
+    suspend fun createCSV(): String {
+        val columns = "id,exerciseName,exerciseId,variationName,variationId,reps,weight,time,intensity"
+        val sets = getSetSummaries()
+        var csv = columns
+        sets.forEach { csv += "\n${it.id.value},${it.exerciseName},${it.exerciseId.value},${it.variationName},${it.variationId?.value},${it.reps},${it.weight},${it.time},${Intensity.toInt(it.intensity)}" }
+        return csv
+    }
 
     suspend fun restoreFromBackup(backup: Backup) {
         dao.insertLocations(backup.locations.map {

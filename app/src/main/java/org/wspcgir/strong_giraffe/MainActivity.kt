@@ -88,6 +88,7 @@ import java.util.Collections.emptyList
 import kotlin.reflect.typeOf
 
 const val JSON_MIME = "application/json"
+const val CSV_MIME = "application/CSV"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,6 +108,17 @@ class MainActivity : ComponentActivity() {
                         val backup = repo.createBackup()
                         val content = Json.encodeToString(backup)
                         saveBackupToFileSystem(it, content)
+                    }
+                }
+            }
+        val createCSV =
+            registerForActivityResult(
+                ActivityResultContracts.CreateDocument(CSV_MIME)
+            ) { uri: Uri? ->
+                uri?.let {
+                    lifecycleScope.launch {
+                        val csv = repo.createCSV()
+                        saveCSVToFileSystem(it, csv)
                     }
                 }
             }
@@ -134,6 +146,13 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
+                        },
+                        exportCSV = {
+                            scope.launch {
+                                val now = LocalDateTime.now()
+                                val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")
+                                createCSV.launch("strong-giraffe-backup-${now.format(dateFormat)}")
+                            }
                         }
                     )
                 }
@@ -141,20 +160,32 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun saveBackupToFileSystem(uri: Uri, content: String) {
+    private fun saveToFileSystem(
+        createMsg: String,
+        errMsg: String,
+        uri: Uri,
+        content: String
+    ) {
         try {
             contentResolver.openOutputStream(uri)?.use { outputStream ->
                 outputStream.write(content.toByteArray())
-                Toast.makeText(this, "Backup created!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, createMsg, Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(
                 this,
-                "Error creating backup: ${e.message}",
+                "${errMsg}: ${e.message}",
                 Toast.LENGTH_LONG
             ).show()
         }
+    }
+    private fun saveBackupToFileSystem(uri: Uri, content: String) {
+        saveToFileSystem("Backup created!", "Error creating backup", uri, content)
+    }
+
+    private fun saveCSVToFileSystem(uri: Uri, content: String) {
+        saveToFileSystem("Export created!", "Error creating export", uri, content)
     }
 
     private fun loadBackupFromFileSystem(uri: Uri): Backup? {
@@ -203,6 +234,7 @@ fun MainComponent(
     repo: AppRepository,
     createBackup: () -> Unit,
     restoreFromBackup: (Uri?) -> Unit,
+    exportCSV: () -> Unit
 ) {
     val navController = rememberNavController()
     val typeMap = mapOf(
@@ -233,7 +265,8 @@ fun MainComponent(
                 }, gotoSetList = {
                     navController.navigate(SetPage)
                 }, createBackup = createBackup,
-                restoreFromBackup = { pickFileLauncher.launch(arrayOf(JSON_MIME)) }
+                restoreFromBackup = { pickFileLauncher.launch(arrayOf(JSON_MIME)) },
+                exportCSV = exportCSV
             )
         }
         composable<LocationList> {
