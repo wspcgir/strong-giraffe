@@ -111,12 +111,11 @@ fun <T> ValueField(
     var text by remember(key1 = start) { mutableStateOf(start.toString()) }
     var valid by remember { mutableStateOf(true) }
 
-    val validStateColors = TextFieldDefaults
-        .textFieldColors()
-    val errorStateColors = TextFieldDefaults.textFieldColors(
-        containerColor = Color.Red.copy(alpha = 0.1f),
+    val validStateColors = TextFieldDefaults.colors()
+    val errorStateColors = TextFieldDefaults.colors().copy(
+        focusedContainerColor = Color.Red.copy(alpha = 0.1f),
         errorTrailingIconColor = Color.Red,
-        textColor = Color.Red
+        focusedTextColor = Color.Red
     )
 
     TextField(

@@ -2,8 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.parcelize'
-
-    // For Room
+    id 'org.jetbrains.kotlin.plugin.compose'
     id 'com.google.devtools.ksp'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id "io.kotest"
@@ -11,14 +10,14 @@ plugins {
 
 android {
     namespace 'org.wspcgir.strong_giraffe'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "org.wspcgir.strong_giraffe"
         minSdk 33
         targetSdk 34
-        versionCode 30
-        versionName "0.14.0"
+        versionCode 31
+        versionName "0.14.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -36,29 +35,25 @@ android {
             versionNameSuffix "-beta"
         }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = "17"
+    }
+    kotlin {
+        jvmToolchain(17)
     }
     buildFeatures {
         compose true
         buildConfig true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.10'
-    }
+    
+    // Manual addition of KSP folders is no longer needed and can cause build errors
+    // Removed: applicationVariants.all { ... }
+
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
-    }
-    applicationVariants.all { variant ->
-        variant.addJavaSourceFoldersToModel(
-                new File(buildDir, "generated/ksp/${variant.name}/kotlin")
-        )
     }
     testOptions {
         unitTests.all {
@@ -71,7 +66,6 @@ android {
 }
 
 class RoomSchemaArgProvider implements CommandLineArgumentProvider {
-
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     File schemaDir
@@ -82,30 +76,32 @@ class RoomSchemaArgProvider implements CommandLineArgumentProvider {
 
     @Override
     Iterable<String> asArguments() {
-        // Note: If you're using KAPT and javac, change the line below to
-        // return ["-Aroom.schemaLocation=${schemaDir.path}".toString()].
         return ["room.schemaLocation=${schemaDir.path}".toString()]
     }
 }
 
 dependencies {
+    implementation 'androidx.core:core-ktx:1.15.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
+    implementation 'androidx.activity:activity-compose:1.10.0'
+    implementation 'org.jetbrains:annotations:24.0.1'
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
-    implementation 'androidx.activity:activity-compose:1.3.1'
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation 'androidx.compose.material3:material3:1.0.0-alpha11'
-    implementation 'androidx.compose.foundation:foundation-layout-android:1.7.2'
+    implementation "androidx.compose.ui:ui:1.7.6"
+    implementation "androidx.compose.ui:ui-tooling-preview:1.7.6"
+    implementation "androidx.compose.foundation:foundation-layout:1.7.6"
+    implementation 'androidx.compose.material3:material3:1.3.1'
     implementation 'androidx.navigation:navigation-compose:2.8.9'
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
 
-    def kotest_version = '5.7.2'
+    // Vico 2.0.1 is the stable version for Android using the Cartesian API
+    implementation 'com.patrykandpatrick.vico:compose-m3:2.0.1'
+
+    def kotest_version = '5.9.1'
     testImplementation "io.kotest:kotest-property-jvm:$kotest_version"
     testImplementation "io.kotest:kotest-assertions-core-jvm:$kotest_version"
     testImplementation "io.kotest:kotest-runner-junit5:$kotest_version"
 
-    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 
     def testing_version = '1.7.8'
@@ -113,13 +109,10 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-tooling:$testing_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$testing_version"
 
-    def room_version = "2.5.2"
-
+    def room_version = "2.6.1"
     implementation "androidx.room:room-runtime:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version"
-    implementation 'com.google.devtools.ksp:symbol-processing-api:1.7.0-1.0.6'
-    ksp "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
     androidTestImplementation "androidx.room:room-testing:$room_version"
 }
 

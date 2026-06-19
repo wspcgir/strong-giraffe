@@ -54,8 +54,8 @@ fun ModalDrawerScaffold(
             },
             bottomBar = {
                 BottomAppBar(
-                    floatingActionButton = actionButton,
-                    icons = {
+                    content = {
+                        actionButton()
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu Button")
                         }

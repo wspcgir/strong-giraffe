@@ -30,7 +30,7 @@ fun PreviousSetButton(
 }
 
 @Composable
-@Preview()
+@Preview(name = "LightMode")
 private fun PreviousSetButtonPreview(){
     StrongGiraffeTheme {
         LazyColumn {
