@@ -283,7 +283,7 @@ interface AppDao {
             FROM SetSummary 
             WHERE time < :cutoff
               AND exerciseId  = :exercise
-              AND variationId = :variation
+              AND (:variation IS NULL AND variationId IS NULL OR variationId = :variation)
             ORDER BY time DESC
             LIMIT :limit
         """
