@@ -4,7 +4,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Parcelable
 import android.util.Log
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,13 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -69,13 +67,13 @@ import org.wspcgir.strong_giraffe.destinations.set.SelectVariation
 import org.wspcgir.strong_giraffe.model.Comment
 import org.wspcgir.strong_giraffe.model.Intensity
 import org.wspcgir.strong_giraffe.model.Reps
-import org.wspcgir.strong_giraffe.model.set.SetContent
 import org.wspcgir.strong_giraffe.model.Time
 import org.wspcgir.strong_giraffe.model.Weight
 import org.wspcgir.strong_giraffe.model.ids.ExerciseId
 import org.wspcgir.strong_giraffe.model.ids.ExerciseVariationId
 import org.wspcgir.strong_giraffe.model.ids.LocationId
 import org.wspcgir.strong_giraffe.model.ids.SetId
+import org.wspcgir.strong_giraffe.model.set.SetContent
 import org.wspcgir.strong_giraffe.model.set.SetSummary
 import org.wspcgir.strong_giraffe.repository.AppRepository
 import org.wspcgir.strong_giraffe.ui.theme.StrongGiraffeTheme
@@ -84,15 +82,14 @@ import org.wspcgir.strong_giraffe.views.IntField
 import org.wspcgir.strong_giraffe.views.ModalDrawerScaffold
 import org.wspcgir.strong_giraffe.views.SelectionField
 import org.wspcgir.strong_giraffe.views.intensityColor
+import org.wspcgir.strong_giraffe.views.plot.BarPlot
+import org.wspcgir.strong_giraffe.views.plot.SeriesValue
 import org.wspcgir.strong_giraffe.views.set.DaySetsCard
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
-import java.util.TimeZone
+import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
-import org.wspcgir.strong_giraffe.views.plot.BarPlot
-import org.wspcgir.strong_giraffe.views.plot.SeriesValue
-import kotlin.random.Random
 
 @Serializable
 @Parcelize
@@ -135,7 +132,8 @@ class EditSetPageViewModel() : ViewModel() {
                     )
                 }
             }
-            else -> { }
+
+            else -> {}
         }
     }
 
@@ -418,18 +416,33 @@ private fun PageContent(
         }
 
         Card {
-
-            val formatter = DateTimeFormatter.ofPattern("MM/dd")
+            var isVolume by remember { mutableStateOf(false) }
             BarPlot(
-                previousSets.value.take(50).map {
-                    SeriesValue(
-                        label = it.time.format(formatter),
-                        height = it.weight.value,
-                        fill = Fill(intensityColor(it.intensity).toArgb())
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.4f)
+                seriesFromPreviousSets(
+                    previousSets.value,
+                    units = if (isVolume) { PlotUnits.ByVolume } else { PlotUnits.ByWeight }
+                ),
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .fillMaxHeight(0.4f)
             )
+            Column(
+                modifier = Modifier.fillMaxWidth(0.8f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Weight")
+                    Switch(
+                        checked = isVolume,
+                        onCheckedChange = { checked -> isVolume = checked }
+                    )
+                    Text("Volume")
+                }
+            }
         }
         val days = SetSummary.groupSetsByDateAndExercise(previousSets.value)
         days.forEach { day ->
@@ -442,6 +455,40 @@ private fun PageContent(
         }
         Spacer(modifier = Modifier.fillMaxHeight(0.1f))
     }
+}
+
+sealed class PlotUnits {
+    object ByWeight : PlotUnits()
+    object ByVolume : PlotUnits()
+}
+
+private fun seriesFromPreviousSets(
+    previousSets: List<SetSummary>,
+    units: PlotUnits,
+): List<SeriesValue> {
+    val formatter = DateTimeFormatter.ofPattern("MM/dd")
+    return previousSets
+        .zipWithNext { curr, next ->
+            val breakDays = ChronoUnit.DAYS.between(next.time, curr.time)
+            listOf(
+                SeriesValue(
+                    label = curr.time.format(formatter),
+                    height = when (units) {
+                        is PlotUnits.ByWeight -> curr.weight.value
+                        is PlotUnits.ByVolume -> curr.weight.value * curr.reps.value
+                    },
+                    fill = Fill(intensityColor(curr.intensity).toArgb())
+                )
+            ).plus((0..breakDays).drop(1).map { i ->
+                SeriesValue(
+                    label = curr.time.minusDays(i).format(formatter),
+                    height = 0f,
+                    fill = Fill(Color.Black.toArgb())
+                )
+            })
+        }
+        .flatten()
+        .take(50)
 }
 
 @Composable
@@ -457,7 +504,7 @@ private fun ActionButton(
         goBack()
     }) {
         if (locked) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Set Locked")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Set Locked")
         } else if (validReps.value && validWeight.value) {
             Icon(Icons.Default.Done, contentDescription = "Save Set")
         } else {
@@ -627,9 +674,9 @@ private fun Preview() {
         )
     val start = OffsetDateTime.now()
     var prevSets = emptyList<SetSummary>()
-    for (i in 0..50) {
-        if (Random.nextBoolean()) {
-            for (j in 0..listOf(3,4).random()) {
+    for (i in 0..10) {
+        if (i % 3 == 0) {
+            for (j in 0..listOf(3, 4).random()) {
                 prevSets = prevSets.plus(
                     SetSummary(
                         id = SetId("a"),
@@ -640,7 +687,7 @@ private fun Preview() {
                         reps = Reps(10),
                         weight = Weight(150.0f - (5 * i)),
                         time = start
-                            .minusMinutes((j*5).toLong())
+                            .minusMinutes((j * 5).toLong())
                             .minusDays(i.toLong()),
                         intensity = listOf(
                             Intensity.Easy,
