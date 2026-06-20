@@ -1,9 +1,9 @@
 package org.wspcgir.strong_giraffe.views.plot
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +19,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
@@ -32,16 +33,15 @@ import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
 import com.patrykandpatrick.vico.core.common.Fill
 import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
-import com.patrykandpatrick.vico.core.common.shape.Shape
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.collections.listOf
+import kotlin.random.Random
 
 data class SetRecord(
-    val dateTime: LocalDateTime,
+    val dateTime: String,
     val weight: Float,
-    val difficulty: Int
+    val fill: Fill
 )
 
 var difficultyColorsKey = ExtraStore.Key<List<Fill>>()
@@ -49,26 +49,12 @@ var difficultyColorsKey = ExtraStore.Key<List<Fill>>()
 @Composable
 fun BarPlot(workoutSets: List<SetRecord>) {
     val modelProducer = remember { CartesianChartModelProducer() }
-    val formatter = remember { DateTimeFormatter.ofPattern("MM/dd HH:mm") }
-    val xToDateMap = remember(workoutSets) {
-        workoutSets.associateBy ({ it.dateTime }, {it})
-    }
-    val difficultyColors = remember(workoutSets) {
-        workoutSets.map { set ->
-            when (set.difficulty) {
-                1 -> Fill(Color.Green.toArgb())
-                2 -> Fill(Color.Yellow.toArgb())
-                3 -> Fill(Color.Red.toArgb())
-                else -> Fill(Color.Black.toArgb())
-            }
-        }
-    }
     var isChartLoaded by remember { mutableStateOf(false) }
     LaunchedEffect(workoutSets) {
         modelProducer.runTransaction {
             columnSeries{ series(workoutSets.map { it.weight }) }
             extras { store ->
-                store[difficultyColorsKey] = difficultyColors
+                store[difficultyColorsKey] = workoutSets.map { it.fill }
             }
         }
         isChartLoaded = true
@@ -76,9 +62,12 @@ fun BarPlot(workoutSets: List<SetRecord>) {
     key(isChartLoaded) {
         Box {
             if (isChartLoaded) {
-                val baseLineComponent = rememberLineComponent(thickness = 16.dp)
+                val baseLineComponent = rememberLineComponent(
+                    strokeThickness = 0.dp,
+                    strokeFill = Fill(Color.Black.toArgb())
+                )
                 CartesianChartHost(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxHeight(0.5f).fillMaxWidth(),
                     modelProducer = modelProducer,
                     chart = rememberCartesianChart(
                         rememberColumnCartesianLayer(
@@ -104,9 +93,14 @@ fun BarPlot(workoutSets: List<SetRecord>) {
                                     }
                                 }
                             },
+                            columnCollectionSpacing = 0.dp,
                         ),
-                        startAxis = VerticalAxis.start(),
-                        bottomAxis = HorizontalAxis.bottom()
+                        startAxis = VerticalAxis.rememberStart(),
+                        bottomAxis = HorizontalAxis.rememberBottom(
+                            valueFormatter = { _, value, _ ->
+                                workoutSets.getOrNull(value.toInt())?.dateTime ?: "-"
+                            }
+                        )
                     ),
                 )
             } else {
@@ -126,11 +120,27 @@ fun BarPlot(workoutSets: List<SetRecord>) {
 @Composable
 private fun preview(){
     val start = LocalDateTime.now()
+    val green = Fill(Color.Green.toArgb())
+    val yellow = Fill(Color.Yellow.toArgb())
+    val red = Fill(Color.Red.toArgb())
+    val format = DateTimeFormatter.ofPattern("MM/dd")
     BarPlot(
-        listOf(
-            SetRecord(start.minusMinutes(10), 10f, 1),
-            SetRecord(start.minusMinutes(7), 15f, 2),
-            SetRecord(start.minusMinutes(3), 20f, 3)
-            )
+        (0..20).flatMap { i ->
+            val day = start.plusWeeks(i.toLong())
+            listOf(
+                SetRecord(day.plusMinutes(0).format(format), (i*5) + 10f, green),
+                SetRecord(day.plusMinutes(5).format(format), (i*5) + 10f, green),
+                SetRecord(day.plusMinutes(10).format(format), (i*5) + 10f, listOf(yellow, green).random()),
+                SetRecord(day.plusDays(1).format(format), 0f, green),
+                SetRecord(day.plusDays(2).format(format), 0f, green),
+                SetRecord(day.plusDays(3).format(format), 0f, green),
+                SetRecord(day.plusDays(4).plusMinutes(0).format(format), (i*5) + 10f, green),
+                SetRecord(day.plusDays(4).plusMinutes(5).format(format), (i*5) + 10f, green),
+                SetRecord(day.plusDays(4).plusMinutes(10).format(format), (i*5) + 10f, listOf(yellow, green).random()),
+                SetRecord(day.plusDays(5).format(format), 0f, green),
+                SetRecord(day.plusDays(6).format(format), 0f, green),
+                SetRecord(day.plusDays(7).format(format), 0f, green),
+            ).take(100)
+        }
     )
 }
