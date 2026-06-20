@@ -49,16 +49,16 @@ data class SeriesValue(
 var difficultyColorsKey = ExtraStore.Key<List<Fill>>()
 
 @Composable
-fun BarPlot(workoutSets: List<SeriesValue>, modifier: Modifier = Modifier) {
+fun BarPlot(seriesValues: List<SeriesValue>, modifier: Modifier = Modifier) {
     val modelProducer = remember { CartesianChartModelProducer() }
     var isChartLoaded by remember { mutableStateOf(false) }
-    LaunchedEffect(workoutSets) {
-        setupCharSeries(modelProducer, workoutSets)
+    LaunchedEffect(seriesValues) {
+        setupCharSeries(modelProducer, seriesValues)
         isChartLoaded = true
     }
     Box {
         if (isChartLoaded) {
-            Chart(modelProducer, workoutSets, modifier)
+            Chart(modelProducer, seriesValues, modifier)
         } else {
             ChartLoading(modifier)
         }
@@ -67,12 +67,12 @@ fun BarPlot(workoutSets: List<SeriesValue>, modifier: Modifier = Modifier) {
 
 private suspend fun setupCharSeries(
     modelProducer: CartesianChartModelProducer,
-    workoutSets: List<SeriesValue>,
+    seriesValues: List<SeriesValue>,
 ): Unit {
     modelProducer.runTransaction {
-        columnSeries { series(workoutSets.map { it.height }) }
+        columnSeries { series(seriesValues.map { it.height }) }
         extras { store ->
-            store[difficultyColorsKey] = workoutSets.map { it.fill }
+            store[difficultyColorsKey] = seriesValues.map { it.fill }
         }
     }
 }
@@ -90,7 +90,7 @@ private fun ChartLoading(modifier: Modifier = Modifier) {
 @Composable
 private fun Chart(
     modelProducer: CartesianChartModelProducer,
-    workoutSets: List<SeriesValue>,
+    seriesValues: List<SeriesValue>,
     modifier: Modifier = Modifier
 ) {
     val baseLineComponent = rememberLineComponent(
@@ -109,17 +109,17 @@ private fun Chart(
                     columnCollectionSpacing = 0.dp,
                 ),
                 startAxis = VerticalAxis.rememberStart(),
-                bottomAxis = bottomAxis(workoutSets)
+                bottomAxis = bottomAxis(seriesValues)
             ),
         )
     }
 }
 
 @Composable
-private fun bottomAxis(workoutSets: List<SeriesValue>): HorizontalAxis<Axis.Position.Horizontal.Bottom> =
+private fun bottomAxis(seriesValues: List<SeriesValue>): HorizontalAxis<Axis.Position.Horizontal.Bottom> =
     HorizontalAxis.rememberBottom(
         valueFormatter = { _, value, _ ->
-            workoutSets.getOrNull(value.toInt())?.label ?: "-"
+            seriesValues.getOrNull(value.toInt())?.label ?: "-"
         }
     )
 

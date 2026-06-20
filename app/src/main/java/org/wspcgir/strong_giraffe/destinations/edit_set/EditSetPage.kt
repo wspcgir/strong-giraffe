@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -48,13 +49,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.patrykandpatrick.vico.core.common.Fill
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -85,6 +90,9 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.TimeZone
 import kotlin.math.roundToInt
+import org.wspcgir.strong_giraffe.views.plot.BarPlot
+import org.wspcgir.strong_giraffe.views.plot.SeriesValue
+import kotlin.random.Random
 
 @Serializable
 @Parcelize
@@ -308,122 +316,188 @@ fun Page(
         } else {
             "Edit Set"
         },
-        drawerContent = {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .weight(0.5f),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Set Locked", modifier = Modifier.padding(end = 10.dp))
-                    Switch(
-                        checked = locked,
-                        onCheckedChange = toggleSetLock,
-                    )
-                }
-                Spacer(modifier = Modifier.weight(0.5f))
-                Button(
-                    modifier = Modifier
-                        .padding(bottom = 10.dp),
-                    onClick = delete
-                ) {
-                    Text("Delete")
-                    Spacer(modifier = Modifier.fillMaxWidth(0.03f))
-                    Icon(Icons.Default.Delete, contentDescription = "delete set")
-                }
-            }
-        },
-        actionButton = {
-            FloatingActionButton(onClick = {
-                submit()
-                goBack()
-            }) {
-                if (locked) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Set Locked")
-                } else if (validReps.value && validWeight.value) {
-                    Icon(Icons.Default.Done, contentDescription = "Save Set")
-                } else {
-                    Icon(Icons.Default.Warning, contentDescription = "Invalid fields")
-                }
-            }
-        }
+        drawerContent = { Drawer(locked, toggleSetLock, delete) },
+        actionButton = { ActionButton(submit, goBack, locked, validReps, validWeight) }
     ) { innerPadding ->
 
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .verticalScroll(scrollState)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Spacer(modifier = Modifier.weight(1.0f))
-            Text(starting.value.time.asFormattedDate(), fontSize = FIELD_NAME_FONT_SIZE)
-            Text(starting.value.time.asFormattedTime(), fontSize = FIELD_NAME_FONT_SIZE)
-            Card {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.padding(10.dp)
-                ) {
-                    SelectionField(
-                        label = "Exercise",
-                        text = starting.value.exerciseName,
-                        onClick = selectExercise,
-                        modifier = Modifier.fillMaxWidth(0.8f)
-                    )
-                    SelectionField(
-                        label = "Variation",
-                        text = starting.value.variationName ?: "N/A",
-                        onClick = selectVariation,
-                        modifier = Modifier.fillMaxWidth(0.8f)
-                    )
-                }
-            }
-            Card {
-                RepsAndWeightSelector(
-                    starting,
-                    validReps,
-                    enabled = !locked,
-                    changeReps,
-                    validWeight,
-                    changeWeight,
+        PageContent(
+            innerPadding,
+            starting,
+            selectExercise,
+            selectVariation,
+            validReps,
+            locked,
+            changeReps,
+            validWeight,
+            changeWeight,
+            changeIntensity,
+            changeComment,
+            keyboardController,
+            previousSets,
+            gotoSet
+        )
+    }
+}
+
+@Composable
+private fun PageContent(
+    innerPadding: PaddingValues,
+    starting: State<SetContent>,
+    selectExercise: () -> Unit,
+    selectVariation: () -> Unit,
+    validReps: MutableState<Boolean>,
+    locked: Boolean,
+    changeReps: (Reps) -> Unit,
+    validWeight: MutableState<Boolean>,
+    changeWeight: (Weight) -> Unit,
+    changeIntensity: (Intensity) -> Unit,
+    changeComment: (Comment) -> Unit,
+    keyboardController: SoftwareKeyboardController?,
+    previousSets: State<List<SetSummary>>,
+    gotoSet: (SetId) -> Unit
+) {
+    val scrollState = rememberScrollState()
+    Column(
+        modifier = Modifier
+            .padding(innerPadding)
+            .verticalScroll(scrollState)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Spacer(modifier = Modifier.weight(1.0f))
+        Text(starting.value.time.asFormattedDate(), fontSize = FIELD_NAME_FONT_SIZE)
+        Text(starting.value.time.asFormattedTime(), fontSize = FIELD_NAME_FONT_SIZE)
+        Card {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(10.dp)
+            ) {
+                SelectionField(
+                    label = "Exercise",
+                    text = starting.value.exerciseName,
+                    onClick = selectExercise,
+                    modifier = Modifier.fillMaxWidth(0.8f)
                 )
-            }
-            Card {
-                IntensitySelector(changeIntensity, starting, enabled = !locked)
-            }
-            Card {
-                Column(
-                    modifier = Modifier.padding(10.dp)
-                ) {
-                    TextField(
-                        label = { Text("Comment") },
-                        modifier = Modifier.fillMaxWidth(0.8f),
-                        enabled = !locked,
-                        value = starting.value.comment.value,
-                        onValueChange = { changeComment(Comment(it)) },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
-                    )
-                }
-            }
-            val days = SetSummary.groupSetsByDateAndExercise(previousSets.value)
-            days.forEach { day ->
-                DaySetsCard(
-                    day = day,
-                    goto = { s -> gotoSet(s.id) },
-                    showExerciseNames = false,
+                SelectionField(
+                    label = "Variation",
+                    text = starting.value.variationName ?: "N/A",
+                    onClick = selectVariation,
                     modifier = Modifier.fillMaxWidth(0.8f)
                 )
             }
-            Spacer(modifier = Modifier.fillMaxHeight(0.1f))
+        }
+        Card {
+            RepsAndWeightSelector(
+                starting,
+                validReps,
+                enabled = !locked,
+                changeReps,
+                validWeight,
+                changeWeight,
+            )
+        }
+        Card {
+            IntensitySelector(changeIntensity, starting, enabled = !locked)
+        }
+        Card {
+            Column(
+                modifier = Modifier.padding(10.dp)
+            ) {
+                TextField(
+                    label = { Text("Comment") },
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    enabled = !locked,
+                    value = starting.value.comment.value,
+                    onValueChange = { changeComment(Comment(it)) },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                )
+            }
+        }
+
+        Card {
+
+            val formatter = DateTimeFormatter.ofPattern("MM/dd")
+            BarPlot(
+                previousSets.value.take(50).map {
+                    SeriesValue(
+                        label = it.time.format(formatter),
+                        height = it.weight.value,
+                        fill = Fill(intensityColor(it.intensity).toArgb())
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.4f)
+            )
+        }
+        val days = SetSummary.groupSetsByDateAndExercise(previousSets.value)
+        days.forEach { day ->
+            DaySetsCard(
+                day = day,
+                goto = { s -> gotoSet(s.id) },
+                showExerciseNames = false,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
+        }
+        Spacer(modifier = Modifier.fillMaxHeight(0.1f))
+    }
+}
+
+@Composable
+private fun ActionButton(
+    submit: () -> Unit,
+    goBack: () -> Unit,
+    locked: Boolean,
+    validReps: MutableState<Boolean>,
+    validWeight: MutableState<Boolean>
+) {
+    FloatingActionButton(onClick = {
+        submit()
+        goBack()
+    }) {
+        if (locked) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Set Locked")
+        } else if (validReps.value && validWeight.value) {
+            Icon(Icons.Default.Done, contentDescription = "Save Set")
+        } else {
+            Icon(Icons.Default.Warning, contentDescription = "Invalid fields")
+        }
+    }
+}
+
+@Composable
+private fun Drawer(
+    locked: Boolean,
+    toggleSetLock: (Boolean) -> Unit,
+    delete: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(bottom = 10.dp)
+                .weight(0.5f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Set Locked", modifier = Modifier.padding(end = 10.dp))
+            Switch(
+                checked = locked,
+                onCheckedChange = toggleSetLock,
+            )
+        }
+        Spacer(modifier = Modifier.weight(0.5f))
+        Button(
+            modifier = Modifier
+                .padding(bottom = 10.dp),
+            onClick = delete
+        ) {
+            Text("Delete")
+            Spacer(modifier = Modifier.fillMaxWidth(0.03f))
+            Icon(Icons.Default.Delete, contentDescription = "delete set")
         }
     }
 }
@@ -545,24 +619,39 @@ private fun Preview() {
             exerciseName = "foo",
             variation = ExerciseVariationId("variationA"),
             variationName = "barbell",
-            reps = Reps(0),
-            weight = Weight(0.0f),
+            reps = Reps(10),
+            weight = Weight(50.0f),
             time = Time(Instant.now()),
             intensity = Intensity.Normal,
             comment = Comment("")
         )
-    val prevSetTemplate =
-        SetSummary(
-            id = SetId("a"),
-            exerciseName = "Name",
-            exerciseId = ExerciseId("a"),
-            variationName = "Variation",
-            variationId = ExerciseVariationId("variationA"),
-            reps = Reps(0),
-            weight = Weight(0.0f),
-            time = OffsetDateTime.now(),
-            intensity = Intensity.Normal,
-        )
+    val start = OffsetDateTime.now()
+    var prevSets = emptyList<SetSummary>()
+    for (i in 0..50) {
+        if (Random.nextBoolean()) {
+            for (j in 0..listOf(3,4).random()) {
+                prevSets = prevSets.plus(
+                    SetSummary(
+                        id = SetId("a"),
+                        exerciseName = "Name",
+                        exerciseId = ExerciseId("a"),
+                        variationName = "Variation",
+                        variationId = ExerciseVariationId("variationA"),
+                        reps = Reps(10),
+                        weight = Weight(150.0f - (5 * i)),
+                        time = start
+                            .minusMinutes((j*5).toLong())
+                            .minusDays(i.toLong()),
+                        intensity = listOf(
+                            Intensity.Easy,
+                            Intensity.Normal,
+                            Intensity.EarlyFailure
+                        ).random(),
+                    )
+                )
+            }
+        }
+    }
     StrongGiraffeTheme {
         Page(
             locked = true,
@@ -578,11 +667,7 @@ private fun Preview() {
             changeIntensity = { },
             changeComment = { },
             gotoSet = { },
-            previousSets = remember {
-                mutableStateOf(
-                    listOf(prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate, prevSetTemplate)
-                )
-            }
+            previousSets = remember { mutableStateOf(prevSets) }
         )
     }
 }
