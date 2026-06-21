@@ -50,17 +50,26 @@ var difficultyColorsKey = ExtraStore.Key<List<Fill>>()
 
 @Composable
 fun BarPlot(seriesValues: List<SeriesValue>, modifier: Modifier = Modifier) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    var isChartLoaded by remember { mutableStateOf(false) }
-    LaunchedEffect(seriesValues) {
-        setupCharSeries(modelProducer, seriesValues)
-        isChartLoaded = true
-    }
-    Box {
-        if (isChartLoaded) {
-            Chart(modelProducer, seriesValues, modifier)
-        } else {
-            ChartLoading(modifier)
+    if (seriesValues.isNotEmpty()) {
+        val modelProducer = remember { CartesianChartModelProducer() }
+        var isChartLoaded by remember { mutableStateOf(false) }
+        LaunchedEffect(seriesValues) {
+            setupCharSeries(modelProducer, seriesValues)
+            isChartLoaded = true
+        }
+        Box {
+            if (isChartLoaded) {
+                Chart(modelProducer, seriesValues, modifier)
+            } else {
+                ChartLoading(modifier)
+            }
+        }
+    } else {
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No data to display")
         }
     }
 }
