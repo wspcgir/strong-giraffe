@@ -11,6 +11,7 @@ import org.wspcgir.strong_giraffe.model.ids.LocationId
 import org.wspcgir.strong_giraffe.model.ids.SetId
 import org.wspcgir.strong_giraffe.model.variation.ExerciseVariation as Variation
 import org.wspcgir.strong_giraffe.repository.entity.*
+import org.wspcgir.strong_giraffe.repository.entity.archived.ArchivedExercise
 import org.wspcgir.strong_giraffe.repository.entity.set.SetSummary
 import org.wspcgir.strong_giraffe.repository.entity.set.WorkoutSet
 import org.wspcgir.strong_giraffe.repository.entity.variation.ExerciseVariation
@@ -20,12 +21,13 @@ import java.util.UUID
     entities = [
         WorkoutSet::class, Location::class,
         Exercise::class, Muscle::class,
-        Equipment::class, ExerciseVariation::class
+        Equipment::class, ExerciseVariation::class,
+        ArchivedExercise::class
     ],
     views = [
         SetSummary::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
