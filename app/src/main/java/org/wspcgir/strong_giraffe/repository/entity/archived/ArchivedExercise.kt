@@ -9,6 +9,7 @@ import androidx.room.PrimaryKey
 import org.wspcgir.strong_giraffe.repository.entity.Exercise
 
 @Entity(
+    tableName = "archived_exercise",
     indices = [
         Index(value = arrayOf("id"))
     ],
