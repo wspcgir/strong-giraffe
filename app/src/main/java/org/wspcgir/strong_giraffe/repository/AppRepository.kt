@@ -68,12 +68,12 @@ class AppRepository(private val dao: AppDao) {
 
     suspend fun getExercises(): List<Exercise> {
         val entities = dao.getExercises()
-        return entities.map { e -> Exercise(ExerciseId(e.id), e.name, MuscleId(e.muscle)) }
+        return entities.map { e -> Exercise(ExerciseId(e.id), e.name, MuscleId(e.muscle), e.isArchived) }
     }
 
     suspend fun getExerciseFromId(id: ExerciseId): Exercise {
         val e = dao.getExercise(id.value)
-        return Exercise(ExerciseId(e.id), e.name, MuscleId(e.muscle))
+        return Exercise(ExerciseId(e.id), e.name, MuscleId(e.muscle), e.isArchived)
     }
 
     suspend fun newExercise(
@@ -82,7 +82,7 @@ class AppRepository(private val dao: AppDao) {
     ): Exercise {
         val name = "New Exercise"
         dao.insertExercise(ExerciseEntity(id.value, name, muscle.value))
-        return Exercise(ExerciseId(id.value), name, muscle)
+        return Exercise(ExerciseId(id.value), name, muscle, false)
 
     }
 
@@ -423,6 +423,10 @@ class AppRepository(private val dao: AppDao) {
                     comment = it.comment.value
                 )
         })
+    }
+
+    suspend fun isExerciseSafeToDelete(id: ExerciseId): Boolean {
+        return dao.isExerciseSafeToDelete(id.value)
     }
 
 }

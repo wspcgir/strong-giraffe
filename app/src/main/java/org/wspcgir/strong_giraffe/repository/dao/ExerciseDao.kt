@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import org.wspcgir.strong_giraffe.repository.entity.Exercise
+import org.wspcgir.strong_giraffe.repository.entity.ExerciseView
 
 @Dao
 interface ExerciseDao {
@@ -14,11 +15,12 @@ interface ExerciseDao {
             SELECT id
                  , name
                  , muscle
-            FROM exercise
+                 , isArchived
+            FROM ExerciseView
             ORDER BY name
         """
     )
-    suspend fun getExercises(): List<Exercise>
+    suspend fun getExercises(): List<ExerciseView>
 
     @Insert
     suspend fun insertExercise(value: Exercise)
@@ -55,10 +57,11 @@ interface ExerciseDao {
         """
         SELECT id,
                name,
-               muscle
-        FROM Exercise
+               muscle,
+               isArchived
+        FROM ExerciseView 
         WHERE id = :id
         """
     )
-    suspend fun getExercise(id: String): Exercise
+    suspend fun getExercise(id: String): ExerciseView
 }

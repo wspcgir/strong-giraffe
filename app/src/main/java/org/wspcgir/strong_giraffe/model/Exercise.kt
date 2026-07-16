@@ -9,4 +9,5 @@ data class Exercise(
     val id: ExerciseId,
     val name: String,
     val muscle: MuscleId,
+    val isArchived: Boolean
 )

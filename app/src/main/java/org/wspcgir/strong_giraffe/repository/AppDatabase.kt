@@ -22,12 +22,13 @@ import java.util.UUID
         WorkoutSet::class, Location::class,
         Exercise::class, Muscle::class,
         Equipment::class, ExerciseVariation::class,
-        ArchivedExercise::class
+        ArchivedExercise::class,
     ],
     views = [
-        SetSummary::class
+        SetSummary::class,
+        ExerciseView::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {

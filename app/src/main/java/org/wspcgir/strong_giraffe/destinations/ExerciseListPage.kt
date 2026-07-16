@@ -49,8 +49,8 @@ private fun Preview() {
     ExerciseListPage(object : ExerciseListPageViewModel() {
         override val exercises: List<Exercise>
             get() = listOf(
-                Exercise(ExerciseId("b"), "Lat Pulldown", MuscleId("a")),
-                Exercise(ExerciseId("a"), "Bench Press", MuscleId("b")),
+                Exercise(ExerciseId("b"), "Lat Pulldown", MuscleId("a"), false),
+                Exercise(ExerciseId("a"), "Bench Press", MuscleId("b"), false),
             )
 
         override val muscles: List<Muscle>

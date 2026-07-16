@@ -46,4 +46,16 @@ interface ArchivedExercise {
         """
     )
     suspend fun restoreExercise(exerciseId: String)
+
+    @Query(
+        """
+        SELECT
+          (exercise_variation.id IS NULL AND workout_set.id)
+        FROM exercise
+        LEFT JOIN exercise_variation ON exercise_variation.exercise = exercise.id
+        LEFT JOIN workout_set ON workout_set.exercise = exercise.id
+        WHERE exercise.id = :id
+        """
+    )
+    suspend fun isExerciseSafeToDelete(id: String): Boolean
 }
